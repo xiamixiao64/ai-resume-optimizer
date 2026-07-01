@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import os
+import io
 import json
 import hashlib
 import datetime
@@ -47,15 +48,40 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
         if "choices" in data and len(data["choices"]) > 0:
             return data["choices"][0]["message"]["content"]
         elif "error" in data:
-            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable. Please try again.", "improvements": [], "keyword_match": [], "missing_keywords": []})
+            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable.", "improvements": [], "keyword_match": [], "missing_keywords": []})
         else:
             return json.dumps({"error": "Unexpected response", "ats_score": 0, "optimized_resume": str(data)[:500], "improvements": [], "keyword_match": [], "missing_keywords": []})
     except Exception as e:
         return json.dumps({"error": str(e), "ats_score": 0, "optimized_resume": f"Error: {str(e)}", "improvements": [], "keyword_match": [], "missing_keywords": []})
 
+def parse_pdf(file):
+    try:
+        import pdfplumber
+        with pdfplumber.open(file) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+            return text.strip()
+    except Exception as e:
+        return f"Error parsing PDF: {str(e)}"
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'resume_file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    file = request.files['resume_file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({'error': 'Only PDF files are supported'}), 400
+    text = parse_pdf(file)
+    if text.startswith('Error'):
+        return jsonify({'error': text}), 400
+    return jsonify({'resume_text': text, 'filename': file.filename})
 
 @app.route('/optimize', methods=['POST'])
 def optimize():
@@ -99,6 +125,27 @@ Return this exact JSON:
   "missing_keywords": ["suggested keyword1", "suggested keyword2"],
   "improvements": ["suggestion1", "suggestion2"],
   "optimized_resume": "<clean formatted resume with keywords integrated>"
+}}"""
+
+    elif mode == 'cover_letter':
+        prompt = f"""Generate a professional cover letter for this candidate applying to this job.
+
+CANDIDATE RESUME:
+{resume_text}
+
+JOB DESCRIPTION:
+{job_description or "N/A"}
+
+Write a compelling 3-paragraph cover letter:
+1. Opening: Hook with enthusiasm and role fit
+2. Body: Match 2-3 key skills to job requirements with specific examples
+3. Closing: Call to action and thank you
+
+Return ONLY valid JSON with double quotes:
+{{
+  "cover_letter": "<the full cover letter text>",
+  "ats_score": <number 0-100>,
+  "key_matches": ["skill match 1", "skill match 2", "skill match 3"]
 }}"""
 
     else:
@@ -161,7 +208,39 @@ The optimized_resume field must be clean formatted text with sections and bullet
         "improvements_count": len(data.get("improvements", []))
     }
 
+    if mode == 'cover_letter':
+        return render_template('cover_letter.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
+
     return render_template('result.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
+
+@app.route('/export/pdf', methods=['POST'])
+def export_pdf():
+    resume_content = request.form.get('resume_content', '')
+    if not resume_content:
+        return jsonify({'error': 'No content'}), 400
+
+    html_content = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+body {{ font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }}
+h1 {{ font-size: 18pt; margin-bottom: 5px; color: #1a1a1a; }}
+h2 {{ font-size: 13pt; border-bottom: 1px solid #333; padding-bottom: 3px; margin-top: 20px; color: #1a1a1a; text-transform: uppercase; }}
+p {{ margin: 3px 0; }}
+ul {{ margin: 5px 0; padding-left: 20px; }}
+li {{ margin: 2px 0; }}
+.contact {{ color: #555; font-size: 10pt; margin-bottom: 15px; }}
+</style></head><body>
+{resume_content.replace(chr(10), '<br>').replace('  ', '&nbsp;')}
+</body></html>"""
+
+    try:
+        from xhtml2pdf import pisa
+        output = io.BytesIO()
+        pisa.CreatePDF(io.StringIO(html_content), dest=output)
+        output.seek(0)
+        return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='optimized_resume.pdf')
+    except Exception as e:
+        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
 
 @app.route('/api/optimize', methods=['POST'])
 def api_optimize():

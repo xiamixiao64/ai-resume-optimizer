@@ -109,12 +109,22 @@
                 <div class="mode-btn" data-mode="keywords" onclick="setMode(this)">
                     <span class="icon">🔍</span>Keywords
                 </div>
+                <div class="mode-btn" data-mode="cover_letter" onclick="setMode(this)">
+                    <span class="icon">✉️</span>Cover Letter
+                </div>
+            </div>
+
+            <div id="uploadSection" style="margin-bottom:20px; padding:20px; background:#1a1a1a; border:2px dashed #333; border-radius:10px; text-align:center;">
+                <p style="color:#888;margin-bottom:12px">Or upload your PDF resume</p>
+                <input type="file" id="resumeFile" accept=".pdf" style="display:none" onchange="handleFileUpload(this)">
+                <button type="button" onclick="document.getElementById('resumeFile').click()" style="background:#222;color:#a855f7;border:1px solid #6366f1;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600">📄 Upload PDF</button>
+                <p id="uploadStatus" style="color:#22c55e;font-size:0.85rem;margin-top:8px;display:none"></p>
             </div>
 
             <form id="optimizeForm" action="/optimize" method="POST">
                 <input type="hidden" name="mode" id="modeInput" value="optimize">
                 <label>Paste Your Resume *</label>
-                <textarea name="resume_text" id="resumeText" placeholder="Paste your resume content here...&#10;&#10;Include your work experience, education, skills, and contact information." required></textarea>
+                <textarea name="resume_text" id="resumeText" placeholder="Paste your resume content here...&#10;&#10;Or upload a PDF above to auto-fill." required></textarea>
                 <br><br>
                 <label>Job Description <span style="color:#666;font-weight:400">(optional but recommended)</span></label>
                 <textarea name="job_description" id="jobDesc" placeholder="Paste the job description you're applying for...&#10;&#10;This helps AI tailor your resume to the specific role." style="min-height:120px"></textarea>
@@ -209,6 +219,31 @@
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
         });
+        async function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const status = document.getElementById('uploadStatus');
+            status.style.display = 'block';
+            status.style.color = '#a855f7';
+            status.textContent = 'Extracting text from PDF...';
+            const formData = new FormData();
+            formData.append('resume_file', file);
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.error) {
+                    status.style.color = '#ef4444';
+                    status.textContent = data.error;
+                } else {
+                    document.getElementById('resumeText').value = data.resume_text;
+                    status.style.color = '#22c55e';
+                    status.textContent = '✓ PDF loaded! ' + file.name + ' (' + data.resume_text.length + ' chars)';
+                }
+            } catch (e) {
+                status.style.color = '#ef4444';
+                status.textContent = 'Upload failed. Please paste your resume.';
+            }
+        }
     </script>
 </body>
 </html>
