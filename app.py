@@ -133,7 +133,9 @@ The optimized_resume field must be clean formatted text with sections and bullet
     result = call_ai(prompt, system_msg)
 
     try:
+        import html as html_lib
         result = result.strip()
+        result = html_lib.unescape(result)
         if result.startswith("```"):
             result = result.split("\n", 1)[1].rsplit("```", 1)[0]
         if result.startswith("json"):
@@ -147,8 +149,7 @@ The optimized_resume field must be clean formatted text with sections and bullet
             "optimized_resume": result,
             "improvements": ["AI analysis completed - review the optimized version"],
             "keyword_match": [],
-            "missing_keywords": [],
-            "bullet_improvements": []
+            "missing_keywords": []
         }
 
     proof_id = str(uuid.uuid4())[:8]
