@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeForge AI - Results</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: #111; border-bottom: 1px solid #222; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.2rem; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header a { color: #a855f7; text-decoration: none; font-weight: 600; }
+        .container { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+        .score-card { background: linear-gradient(135deg, #1a1030, #0a0a1a); border: 1px solid #333; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 24px; }
+        .score-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 2.5rem; font-weight: 800; }
+        .score-high { background: conic-gradient(#22c55e 0deg, #22c55e {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
+        .score-mid { background: conic-gradient(#eab308 0deg, #eab308 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
+        .score-low { background: conic-gradient(#ef4444 0deg, #ef4444 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
+        .score-inner { width: 100px; height: 100px; background: #0a0a0a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .score-num { font-size: 2.2rem; font-weight: 800; }
+        .score-label { font-size: 0.75rem; color: #666; }
+        .score-verdict { font-size: 1.1rem; font-weight: 600; margin-top: 8px; }
+        .section { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .section h2 { font-size: 1.15rem; margin-bottom: 16px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .tag { display: inline-block; background: #1a1a2e; color: #818cf8; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; margin: 3px; }
+        .tag.missing { background: #2a1a1a; color: #f87171; }
+        .improvement { padding: 12px 0; border-bottom: 1px solid #222; }
+        .improvement:last-child { border-bottom: none; }
+        .improvement .num { color: #a855f7; font-weight: 700; margin-right: 8px; }
+        .resume-output { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 20px; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.7; max-height: 600px; overflow-y: auto; }
+        .copy-btn { background: #6366f1; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 12px; }
+        .copy-btn:hover { background: #5558e6; }
+        .proof { text-align: center; padding: 20px; color: #555; font-size: 0.8rem; }
+        .cta-card { background: linear-gradient(135deg, #1a1030, #111); border: 1px solid #6366f1; border-radius: 12px; padding: 32px; text-align: center; margin: 30px 0; }
+        .cta-card h3 { font-size: 1.3rem; margin-bottom: 12px; color: #fff; }
+        .cta-card p { color: #888; margin-bottom: 20px; }
+        .cta-btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1.05rem; }
+        .cta-btn:hover { transform: translateY(-2px); }
+        @media (max-width: 640px) { .score-ring { width: 100px; height: 100px; } .score-inner { width: 82px; height: 82px; } .score-num { font-size: 1.8rem; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ResumeForge AI</h1>
+        <a href="/">New Optimization</a>
+    </div>
+
+    <div class="container">
+        <div class="score-card">
+            {% set score = data.ats_score|default(65) %}
+            {% if score >= 80 %}{% set sc = 'score-high' %}{% set verdict = 'Excellent! Your resume is well-optimized' %}
+            {% elif score >= 60 %}{% set sc = 'score-mid' %}{% set verdict = 'Good start, but room for improvement' %}
+            {% else %}{% set sc = 'score-low' %}{% set verdict = 'Needs work - follow the suggestions below' %}{% endif %}
+            <div class="score-ring {{ sc }}">
+                <div class="score-inner">
+                    <div class="score-num">{{ score }}</div>
+                    <div class="score-label">ATS Score</div>
+                </div>
+            </div>
+            <div class="score-verdict">{{ verdict }}</div>
+        </div>
+
+        {% if data.keyword_match is defined and data.keyword_match %}
+        <div class="section">
+            <h2>✅ Matched Keywords</h2>
+            {% for kw in data.keyword_match %}
+            <span class="tag">{{ kw }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.missing_keywords is defined and data.missing_keywords %}
+        <div class="section">
+            <h2>⚠️ Missing Keywords</h2>
+            {% for kw in data.missing_keywords %}
+            <span class="tag missing">{{ kw }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.improvements is defined and data.improvements %}
+        <div class="section">
+            <h2>💡 Improvements Made</h2>
+            {% for imp in data.improvements %}
+            <div class="improvement">
+                <span class="num">{{ loop.index }}.</span>{{ imp }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="section">
+            <h2>📄 Optimized Resume</h2>
+            <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|default('Optimization completed. Review the changes above.') }}</div>
+            <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
+        </div>
+
+        <div class="cta-card">
+            <h3>Want to optimize another resume?</h3>
+            <p>Get unlimited optimizations with ResumeForge Pro</p>
+            <a href="/" class="cta-btn">Try Again - Free</a>
+        </div>
+
+        <div class="proof">
+            Verification ID: {{ proof.id }} | {{ proof.timestamp[:10] }} | Resume hash: {{ proof.resume_hash }}
+        </div>
+    </div>
+
+    <script>
+        function copyResume() {
+            const text = document.getElementById('resumeOutput').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+            });
+        }
+    </script>
+</body>
+</html>
