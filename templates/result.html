@@ -91,7 +91,7 @@
 
         <div class="section">
             <h2>📄 Optimized Resume</h2>
-            <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|default('Optimization completed. Review the changes above.') }}</div>
+            <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|safe|default('Optimization completed. Review the changes above.') }}</div>
             <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
         </div>
 
