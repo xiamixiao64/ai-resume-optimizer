@@ -20,20 +20,6 @@ def load_env():
 load_env()
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-if not GEMINI_API_KEY:
-    for p in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'),
-              os.path.join(os.getcwd(), '.env')]:
-        try:
-            with open(p) as f:
-                for line in f:
-                    if line.strip().startswith('GEMINI_API_KEY='):
-                        GEMINI_API_KEY = line.strip().split('=', 1)[1].strip()
-                        break
-            if GEMINI_API_KEY:
-                break
-        except:
-            pass
-
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
@@ -49,9 +35,15 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
             },
             timeout=60
         )
-        return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        data = resp.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        elif "error" in data:
+            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable. Please try again later.", "improvements": [], "keyword_match": [], "missing_keywords": []})
+        else:
+            return json.dumps({"error": "Unexpected API response", "ats_score": 0, "optimized_resume": str(data)[:500], "improvements": [], "keyword_match": [], "missing_keywords": []})
     except Exception as e:
-        return f"Error: {str(e)}"
+        return json.dumps({"error": str(e), "ats_score": 0, "optimized_resume": f"Error: {str(e)}", "improvements": [], "keyword_match": [], "missing_keywords": []})
 
 @app.route('/')
 def index():
