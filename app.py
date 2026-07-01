@@ -5,6 +5,7 @@ import json
 import hashlib
 import datetime
 import uuid
+import re
 
 app = Flask(__name__)
 
@@ -23,6 +24,107 @@ load_env()
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.1-8b-instant"
+
+def format_resume_dict(resume_dict):
+    """Convert a dict resume to professional formatted text"""
+    lines = []
+    for section, content in resume_dict.items():
+        # Section header
+        lines.append(section.upper())
+        lines.append("")
+        
+        if isinstance(content, dict):
+            for key, value in content.items():
+                if isinstance(value, list):
+                    lines.append(f"{key}")
+                    for item in value:
+                        if isinstance(item, dict):
+                            for k, v in item.items():
+                                lines.append(f"  - {v}")
+                        else:
+                            lines.append(f"  - {item}")
+                elif isinstance(value, dict):
+                    for k, v in value.items():
+                        lines.append(f"{k}: {v}")
+                else:
+                    lines.append(f"{key}: {value}")
+        elif isinstance(content, list):
+            for item in content:
+                if isinstance(item, dict):
+                    for k, v in item.items():
+                        lines.append(f"- {v}")
+                else:
+                    lines.append(f"- {item}")
+        else:
+            lines.append(str(content))
+        lines.append("")
+    
+    return "\n".join(lines)
+
+def format_raw_text(text):
+    """Clean up raw text from AI"""
+    # Remove excessive whitespace
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    # Remove common AI artifacts
+    text = text.replace('```json', '').replace('```', '')
+    return text.strip()
+
+def format_structured_resume(data):
+    """Format structured resume data into professional text"""
+    lines = []
+    
+    # Header
+    if "name" in data:
+        lines.append(data["name"].upper())
+    if "contact" in data:
+        lines.append(data["contact"])
+    lines.append("")
+    
+    # Summary
+    if "summary" in data and data["summary"]:
+        lines.append("PROFESSIONAL SUMMARY")
+        lines.append(data["summary"])
+        lines.append("")
+    
+    # Experience
+    if "experience" in data and data["experience"]:
+        lines.append("EXPERIENCE")
+        for exp in data["experience"]:
+            if isinstance(exp, dict):
+                title = exp.get("title", "")
+                company = exp.get("company", "")
+                location = exp.get("location", "")
+                dates = exp.get("dates", "")
+                
+                header_parts = [p for p in [title, company, location] if p]
+                lines.append(" | ".join(header_parts))
+                if dates:
+                    lines.append(dates)
+                
+                bullets = exp.get("bullets", [])
+                for bullet in bullets:
+                    lines.append(f"  - {bullet}")
+                lines.append("")
+    
+    # Education
+    if "education" in data and data["education"]:
+        lines.append("EDUCATION")
+        for edu in data["education"]:
+            if isinstance(edu, dict):
+                degree = edu.get("degree", "")
+                school = edu.get("school", "")
+                year = edu.get("year", "")
+                parts = [p for p in [degree, school, year] if p]
+                lines.append(" | ".join(parts))
+        lines.append("")
+    
+    # Skills
+    if "skills" in data and data["skills"]:
+        lines.append("SKILLS")
+        lines.append(", ".join(data["skills"]))
+        lines.append("")
+    
+    return "\n".join(lines)
 
 def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
     try:
@@ -149,24 +251,7 @@ Return ONLY valid JSON with double quotes:
 }}"""
 
     else:
-        prompt = f"""You are an expert ATS resume optimizer. Your job is to IMPROVE the resume, not rewrite it from scratch.
-
-CRITICAL RULES:
-1. PRESERVE the original structure - keep all section headers, company names, dates, locations
-2. KEEP all existing content - enhance it, don't remove it
-3. IMPROVE bullet points by:
-   - Starting with strong action verbs (Led, Built, Implemented, Optimized, Reduced, Increased)
-   - Adding specific metrics and numbers where possible
-   - Making achievements quantifiable
-4. ADD relevant keywords from the job description naturally
-5. MAINTAIN professional formatting - mixed case (not all caps), proper spacing
-
-DO NOT:
-- Change the overall structure
-- Remove any sections
-- Use all uppercase text
-- Invent false information
-- Remove company names or dates
+        prompt = f"""Analyze this resume and return improvements as JSON.
 
 RESUME:
 {resume_text}
@@ -174,28 +259,49 @@ RESUME:
 JOB DESCRIPTION:
 {job_description or "N/A"}
 
-Return ONLY valid JSON with this structure:
+Return ONLY this JSON structure:
 {{
-  "ats_score": <number 0-100 based on ATS compatibility>,
-  "optimized_resume": "<the FULL improved resume with preserved structure and enhanced bullet points>",
-  "improvements": ["<specific improvement 1>", "<specific improvement 2>", ...],
-  "keyword_match": ["<matched keyword 1>", "<matched keyword 2>", ...],
-  "missing_keywords": ["<missing keyword 1>", "<missing keyword 2>", ...]
+  "ats_score": <0-100>,
+  "name": "<candidate name>",
+  "contact": "<email, phone, linkedin>",
+  "summary": "<2-3 sentence professional summary>",
+  "experience": [
+    {{
+      "title": "<job title>",
+      "company": "<company name>",
+      "location": "<location>",
+      "dates": "<start - end>",
+      "bullets": [
+        "<improved bullet point 1>",
+        "<improved bullet point 2>"
+      ]
+    }}
+  ],
+  "education": [
+    {{
+      "degree": "<degree>",
+      "school": "<school name>",
+      "year": "<graduation year>"
+    }}
+  ],
+  "skills": ["<skill1>", "<skill2>", ...],
+  "improvements": ["<improvement 1>", "<improvement 2>", ...],
+  "keyword_match": ["<keyword 1>", "<keyword 2>", ...],
+  "missing_keywords": ["<keyword 1>", "<keyword 2>", ...]
 }}
 
-The optimized_resume MUST look like a real, professional resume with proper formatting."""
+RULES:
+1. Keep ALL original information - enhance, don't remove
+2. Improve bullet points with action verbs and metrics
+3. Add keywords from job description naturally
+4. Return ONLY valid JSON"""
 
-    system_msg = """You are an expert ATS resume optimizer with 15 years of experience.
-Your job is to IMPROVE resumes, not rewrite them from scratch.
+    system_msg = """You are an expert ATS resume optimizer.
 
-KEY PRINCIPLES:
-1. PRESERVE original structure - keep all sections, company names, dates, locations
-2. ENHANCE bullet points - add action verbs, metrics, quantifiable achievements
-3. ADD relevant keywords from job description naturally
-4. MAINTAIN professional formatting - mixed case, proper spacing
-5. Return ONLY valid JSON - no text before or after
-
-You make small, targeted improvements that significantly increase ATS compatibility while keeping the resume authentic and professional."""
+Return ONLY valid JSON with the exact structure requested.
+No markdown, no explanations, no text before or after the JSON.
+Keep all original information - enhance, don't remove.
+Improve bullet points with action verbs and quantifiable results."""
 
     result = call_ai(prompt, system_msg)
 
@@ -218,14 +324,35 @@ You make small, targeted improvements that significantly increase ATS compatibil
         
         data = json.loads(result)
         
-        # Clean up optimized_resume if it's a dict
-        if "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
-            data["optimized_resume"] = json.dumps(data["optimized_resume"], indent=2)
+        # Format the resume for display
+        if "name" in data:
+            # New structured format
+            formatted = format_structured_resume(data)
+            data["optimized_resume"] = formatted
+        elif "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
+            data["optimized_resume"] = format_resume_dict(data["optimized_resume"])
+        elif "optimized_resume" in data and isinstance(data["optimized_resume"], str):
+            # Check if it looks like a dict string
+            if data["optimized_resume"].strip().startswith('{'):
+                try:
+                    inner = json.loads(data["optimized_resume"])
+                    if isinstance(inner, dict):
+                        data["optimized_resume"] = format_resume_dict(inner)
+                except:
+                    pass
         
         # Ensure all required fields exist
         for field in ["ats_score", "optimized_resume", "improvements", "keyword_match", "missing_keywords"]:
             if field not in data:
                 data[field] = [] if field in ["improvements", "keyword_match", "missing_keywords"] else (65 if field == "ats_score" else "")
+    except Exception as e:
+        data = {
+            "ats_score": 65,
+            "optimized_resume": format_raw_text(result) if len(result) < 5000 else "Error processing resume",
+            "improvements": ["AI analysis completed - review the optimized version"],
+            "keyword_match": [],
+            "missing_keywords": []
+        }
     except Exception as e:
         data = {
             "ats_score": 65,
