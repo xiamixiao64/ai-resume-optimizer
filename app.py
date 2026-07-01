@@ -174,30 +174,47 @@ Return this exact JSON structure:
   "missing_keywords": ["<keyword 1>", "<keyword 2>", ...]
 }}"""
 
-    system_msg = """You are an expert ATS resume optimizer. Return ONLY valid JSON with double quotes.
-The optimized_resume field must be clean formatted text with sections and bullet points, NOT a dict or nested JSON."""
+    system_msg = """You are an expert ATS resume optimizer. 
+CRITICAL RULES:
+1. Return ONLY valid JSON - no text before or after
+2. No markdown code blocks, no explanations
+3. The optimized_resume field MUST be clean formatted text with uppercase headers and bullet points
+4. Use double quotes for all strings
+5. Escape newlines in strings as \\n"""
 
     result = call_ai(prompt, system_msg)
 
     try:
         import html as html_lib
+        import re
         result = result.strip()
         result = html_lib.unescape(result)
-        if result.startswith("```"):
-            result = result.split("\n", 1)[1].rsplit("```", 1)[0]
-        if result.startswith("json"):
-            result = result[4:].strip()
+        
+        # Extract JSON from markdown code blocks
+        code_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', result, re.DOTALL)
+        if code_match:
+            result = code_match.group(1).strip()
+        
+        # Find JSON object boundaries
         json_start = result.find('{')
         json_end = result.rfind('}')
-        if json_start != -1 and json_end != -1:
+        if json_start != -1 and json_end != -1 and json_end > json_start:
             result = result[json_start:json_end+1]
+        
         data = json.loads(result)
+        
+        # Clean up optimized_resume if it's a dict
         if "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
             data["optimized_resume"] = json.dumps(data["optimized_resume"], indent=2)
-    except:
+        
+        # Ensure all required fields exist
+        for field in ["ats_score", "optimized_resume", "improvements", "keyword_match", "missing_keywords"]:
+            if field not in data:
+                data[field] = [] if field in ["improvements", "keyword_match", "missing_keywords"] else (65 if field == "ats_score" else "")
+    except Exception as e:
         data = {
             "ats_score": 65,
-            "optimized_resume": result,
+            "optimized_resume": result if len(result) < 5000 else result[:5000],
             "improvements": ["AI analysis completed - review the optimized version"],
             "keyword_match": [],
             "missing_keywords": []
