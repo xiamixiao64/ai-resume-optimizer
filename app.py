@@ -252,7 +252,7 @@ Return ONLY valid JSON with double quotes:
 }}"""
 
     else:
-        prompt = f"""You are a senior technical recruiter at a FAANG company. Analyze this resume for a specific job.
+        prompt = f"""You are a senior technical recruiter. Optimize this resume for the job.
 
 RESUME:
 {resume_text}
@@ -260,56 +260,48 @@ RESUME:
 TARGET JOB:
 {job_description or "N/A"}
 
-TASK: Return a JSON with the OPTIMIZED resume and analysis.
+RULES:
 
-RULES FOR BULLET POINTS:
-1. Start with strong action verbs: Architected, Led, Implemented, Optimized, Reduced, Increased, Delivered, Designed, Built, Automated
-2. Add realistic, modest metrics (not round numbers like 30% or 95%):
-   - Instead of "improved performance" → "Reduced API response time from 2s to 800ms"
-   - Instead of "worked on team" → "Collaborated with 4 engineers on cross-functional sprint team"
-   - Instead of "fixed bugs" → "Resolved 15+ production bugs, reducing incident tickets by 40%"
-3. Include specific technologies mentioned in the resume
-4. Add keywords from job description naturally
+1. BULLET POINTS - Start with action verb, add realistic metrics:
+   - Use varied numbers: 12%, 18%, 37%, 45% (NOT 20%, 25%, 30%, 50%)
+   - Use ranges: "15-20%", "3x-4x", "10K-15K"
+   - Use specific counts: "12 features", "8 microservices", "40+ PRs"
+   - Example: "Optimized API response time from 2.3s to 890ms, reducing user churn by 18%"
 
-RULES FOR SUMMARY:
-- 2 sentences max
-- Mention years of experience + top skills + career goal
-- Tailor to the job description
+2. IMPROVEMENTS - Be SPECIFIC to THIS resume:
+   - "Add quantifiable metric to WeChat mini-program bullet point"
+   - "Reorder skills to put Python first (matching job description)"
+   - "Add cloud platform experience (AWS/Azure) if available"
+   - NOT: "Learn TensorFlow" or "Explore machine learning"
 
-RULES FOR IMPROVEMENTS:
-- Be SPECIFIC: "Add quantifiable metric to 2nd bullet point in ABC Corp section"
-- Not generic: "Add metrics" or "Use action verbs"
+3. KEEP original company names - never change them
+   - If resume says "Personal Projects", keep it
+   - If resume says "ABC Corp", keep it
 
-RULES FOR KEYWORDS:
-- Extract EXACT words from job description that appear in resume
-- List words from job description NOT in resume
+4. SUMMARY - 2 sentences max, tailored to job:
+   - Years of experience + top 3 skills + career goal
+   - Match keywords from job description
 
 JSON STRUCTURE:
 {{
   "ats_score": <0-100>,
-  "name": "<candidate name>",
-  "contact": "<email | phone | linkedin>",
-  "summary": "<2 sentence professional summary>",
+  "name": "<name>",
+  "contact": "<contact>",
+  "summary": "<2 sentence summary>",
   "experience": [
     {{
-      "title": "<job title>",
-      "company": "<company>",
-      "location": "<city, state>",
-      "dates": "<MMM YYYY - MMM YYYY or Present>",
-      "bullets": ["<enhanced bullet 1>", "<enhanced bullet 2>"]
+      "title": "<title>",
+      "company": "<company - KEEP ORIGINAL>",
+      "location": "<location>",
+      "dates": "<dates>",
+      "bullets": ["<enhanced bullet>", ...]
     }}
   ],
-  "education": [
-    {{
-      "degree": "<degree>",
-      "school": "<school>",
-      "year": "<year>"
-    }}
-  ],
-  "skills": ["<skill1>", "<skill2>", ...],
-  "improvements": ["<specific improvement 1>", "<specific improvement 2>", ...],
-  "keyword_match": ["<exact keyword from JD>"],
-  "missing_keywords": ["<exact keyword from JD not in resume>"]
+  "education": [...],
+  "skills": [...],
+  "improvements": ["<specific to THIS resume>"],
+  "keyword_match": ["<exact from JD>"],
+  "missing_keywords": ["<exact from JD not in resume>"]
 }}"""
 
 RULES:
@@ -318,17 +310,18 @@ RULES:
 3. Add keywords from job description naturally
 4. Return ONLY valid JSON"""
 
-    system_msg = """You are a senior technical recruiter who has reviewed 50,000+ resumes and hired 500+ engineers at FAANG companies.
+    system_msg = """You are a senior technical recruiter who has reviewed 50,000+ resumes.
 
-You know exactly what makes a resume pass ATS filters and impress hiring managers.
-
-Your approach:
-1. Be SPECIFIC - exact metrics, exact technologies, exact company names
-2. Be REALISTIC - modest improvements, not fabricated numbers
-3. Be RELEVANT - tailor everything to the job description
-4. Be CONCISE - every word must earn its place
-
-Return ONLY valid JSON. No markdown, no explanations."""
+CRITICAL RULES:
+1. METRICS must be realistic and varied:
+   - Use: 12%, 18%, 37%, 45%, 15-20%, 3x-4x, 10K-15K
+   - NEVER use: 20%, 25%, 30%, 50%, 100% (too round, looks fake)
+2. IMPROVEMENTS must be specific to the resume content:
+   - "Add metric to WeChat project bullet point"
+   - "Reorder skills to match job description"
+   - NOT "Learn TensorFlow" or "Explore machine learning"
+3. KEEP original company names - never change them
+4. Return ONLY valid JSON"""
 
     result = call_ai(prompt, system_msg)
 
