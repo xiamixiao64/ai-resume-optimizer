@@ -151,50 +151,44 @@ def generate_specific_improvements(data):
     """Generate specific, actionable improvements based on resume content"""
     improvements = []
     
-    # Check experience section
+    # Get resume data
     experience = data.get("experience", [])
+    skills = data.get("skills", [])
+    summary = data.get("summary", "")
+    name = data.get("name", "")
+    contact = data.get("contact", "")
+    
+    # Check if contact has LinkedIn/portfolio
+    if contact and "linkedin" not in contact.lower() and "github" not in contact.lower():
+        improvements.append("Add LinkedIn profile URL to contact section (increases callback rate by 40%)")
+    
+    # Check experience section
     if experience:
         for idx, exp in enumerate(experience):
             if isinstance(exp, dict):
                 company = exp.get("company", "this position")
                 bullets = exp.get("bullets", [])
                 
-                # Check each bullet point
+                # Check if bullets have specific business metrics
                 for bullet_idx, bullet in enumerate(bullets):
-                    # Check if bullet has specific metrics (not just generic percentages)
-                    has_specific_metric = False
-                    for metric in ["$", "K", "M", "users", "customers", "projects", "features", "applications", "revenue", "cost"]:
-                        if metric.lower() in bullet.lower():
-                            has_specific_metric = True
+                    has_business_metric = False
+                    for metric in ["revenue", "cost", "users", "customers", "sales", "growth", "retention", "conversion"]:
+                        if metric in bullet.lower():
+                            has_business_metric = True
                             break
                     
-                    if not has_specific_metric:
-                        improvements.append("Add specific business impact metric to %s bullet %d (e.g., revenue, users, cost savings)" % (company, bullet_idx + 1))
-                
-                # Check if bullets start with strong action verbs
-                strong_verbs = ["architected", "led", "implemented", "optimized", "reduced", "increased", "delivered", "designed", "built", "automated", "launched", "scaled"]
-                for bullet in bullets:
-                    first_word = bullet.split()[0].lower() if bullet.split() else ""
-                    if first_word not in strong_verbs:
-                        improvements.append("Start bullet points with stronger action verbs (e.g., Architected, Led, Implemented)")
+                    if not has_business_metric:
+                        improvements.append("Add business impact to %s: 'resulting in $X cost savings' or 'serving X users'" % company)
                         break
     
-    # Check skills section - always suggest reordering
-    skills = data.get("skills", [])
-    if skills:
-        improvements.append("Reorder skills to match job description keywords (put most relevant first)")
+    # Always suggest these
+    if not skills or len(skills) < 8:
+        improvements.append("Expand skills section with 3-5 more technologies from job description")
     
-    # Check summary - always suggest making it more concise
-    summary = data.get("summary", "")
     if summary:
-        word_count = len(summary.split())
-        if word_count > 25:
-            improvements.append("Shorten professional summary to 2 sentences (currently %d words)" % word_count)
+        improvements.append("Tailor summary to mention specific job title from description")
     
-    # Always add these generic but useful suggestions
-    improvements.append("Add links to GitHub/portfolio/LinkedIn in contact section")
-    
-    # Limit to 4 most important
+    # Limit to 4
     return improvements[:4]
 
 def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
