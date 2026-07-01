@@ -19,29 +19,37 @@ def load_env():
 
 load_env()
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
     try:
         import requests as std_requests
-        full_prompt = f"{system_msg}\n\n{prompt}"
         resp = std_requests.post(
-            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
+            GROQ_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
             json={
-                "contents": [{"parts": [{"text": full_prompt}]}],
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 3000}
+                "model": GROQ_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 3000
             },
             timeout=60
         )
         data = resp.json()
-        if "candidates" in data and len(data["candidates"]) > 0:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
+        if "choices" in data and len(data["choices"]) > 0:
+            return data["choices"][0]["message"]["content"]
         elif "error" in data:
-            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable. Please try again later.", "improvements": [], "keyword_match": [], "missing_keywords": []})
+            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable. Please try again.", "improvements": [], "keyword_match": [], "missing_keywords": []})
         else:
-            return json.dumps({"error": "Unexpected API response", "ats_score": 0, "optimized_resume": str(data)[:500], "improvements": [], "keyword_match": [], "missing_keywords": []})
+            return json.dumps({"error": "Unexpected response", "ats_score": 0, "optimized_resume": str(data)[:500], "improvements": [], "keyword_match": [], "missing_keywords": []})
     except Exception as e:
         return json.dumps({"error": str(e), "ats_score": 0, "optimized_resume": f"Error: {str(e)}", "improvements": [], "keyword_match": [], "missing_keywords": []})
 
@@ -182,7 +190,7 @@ JOB DESCRIPTION:
 
 @app.route('/health')
 def health():
-    return jsonify({"status": "ok", "gemini_key_set": bool(GEMINI_API_KEY)})
+    return jsonify({"status": "ok", "groq_key_set": bool(GROQ_API_KEY)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
