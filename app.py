@@ -75,7 +75,7 @@ def format_structured_resume(data):
     
     # Header
     if "name" in data:
-        lines.append(data["name"].upper())
+        lines.append(data["name"])
     if "contact" in data:
         lines.append(data["contact"])
     lines.append("")
@@ -96,6 +96,7 @@ def format_structured_resume(data):
                 location = exp.get("location", "")
                 dates = exp.get("dates", "")
                 
+                # Format header: Title | Company | Location
                 header_parts = [p for p in [title, company, location] if p]
                 lines.append(" | ".join(header_parts))
                 if dates:
@@ -103,7 +104,7 @@ def format_structured_resume(data):
                 
                 bullets = exp.get("bullets", [])
                 for bullet in bullets:
-                    lines.append(f"  - {bullet}")
+                    lines.append(f"  • {bullet}")
                 lines.append("")
     
     # Education
@@ -251,44 +252,65 @@ Return ONLY valid JSON with double quotes:
 }}"""
 
     else:
-        prompt = f"""Analyze this resume and return improvements as JSON.
+        prompt = f"""You are a senior technical recruiter at a FAANG company. Analyze this resume for a specific job.
 
 RESUME:
 {resume_text}
 
-JOB DESCRIPTION:
+TARGET JOB:
 {job_description or "N/A"}
 
-Return ONLY this JSON structure:
+TASK: Return a JSON with the OPTIMIZED resume and analysis.
+
+RULES FOR BULLET POINTS:
+1. Start with strong action verbs: Architected, Led, Implemented, Optimized, Reduced, Increased, Delivered, Designed, Built, Automated
+2. Add realistic, modest metrics (not round numbers like 30% or 95%):
+   - Instead of "improved performance" → "Reduced API response time from 2s to 800ms"
+   - Instead of "worked on team" → "Collaborated with 4 engineers on cross-functional sprint team"
+   - Instead of "fixed bugs" → "Resolved 15+ production bugs, reducing incident tickets by 40%"
+3. Include specific technologies mentioned in the resume
+4. Add keywords from job description naturally
+
+RULES FOR SUMMARY:
+- 2 sentences max
+- Mention years of experience + top skills + career goal
+- Tailor to the job description
+
+RULES FOR IMPROVEMENTS:
+- Be SPECIFIC: "Add quantifiable metric to 2nd bullet point in ABC Corp section"
+- Not generic: "Add metrics" or "Use action verbs"
+
+RULES FOR KEYWORDS:
+- Extract EXACT words from job description that appear in resume
+- List words from job description NOT in resume
+
+JSON STRUCTURE:
 {{
   "ats_score": <0-100>,
   "name": "<candidate name>",
-  "contact": "<email, phone, linkedin>",
-  "summary": "<2-3 sentence professional summary>",
+  "contact": "<email | phone | linkedin>",
+  "summary": "<2 sentence professional summary>",
   "experience": [
     {{
       "title": "<job title>",
-      "company": "<company name>",
-      "location": "<location>",
-      "dates": "<start - end>",
-      "bullets": [
-        "<improved bullet point 1>",
-        "<improved bullet point 2>"
-      ]
+      "company": "<company>",
+      "location": "<city, state>",
+      "dates": "<MMM YYYY - MMM YYYY or Present>",
+      "bullets": ["<enhanced bullet 1>", "<enhanced bullet 2>"]
     }}
   ],
   "education": [
     {{
       "degree": "<degree>",
-      "school": "<school name>",
-      "year": "<graduation year>"
+      "school": "<school>",
+      "year": "<year>"
     }}
   ],
   "skills": ["<skill1>", "<skill2>", ...],
-  "improvements": ["<improvement 1>", "<improvement 2>", ...],
-  "keyword_match": ["<keyword 1>", "<keyword 2>", ...],
-  "missing_keywords": ["<keyword 1>", "<keyword 2>", ...]
-}}
+  "improvements": ["<specific improvement 1>", "<specific improvement 2>", ...],
+  "keyword_match": ["<exact keyword from JD>"],
+  "missing_keywords": ["<exact keyword from JD not in resume>"]
+}}"""
 
 RULES:
 1. Keep ALL original information - enhance, don't remove
@@ -296,12 +318,17 @@ RULES:
 3. Add keywords from job description naturally
 4. Return ONLY valid JSON"""
 
-    system_msg = """You are an expert ATS resume optimizer.
+    system_msg = """You are a senior technical recruiter who has reviewed 50,000+ resumes and hired 500+ engineers at FAANG companies.
 
-Return ONLY valid JSON with the exact structure requested.
-No markdown, no explanations, no text before or after the JSON.
-Keep all original information - enhance, don't remove.
-Improve bullet points with action verbs and quantifiable results."""
+You know exactly what makes a resume pass ATS filters and impress hiring managers.
+
+Your approach:
+1. Be SPECIFIC - exact metrics, exact technologies, exact company names
+2. Be REALISTIC - modest improvements, not fabricated numbers
+3. Be RELEVANT - tailor everything to the job description
+4. Be CONCISE - every word must earn its place
+
+Return ONLY valid JSON. No markdown, no explanations."""
 
     result = call_ai(prompt, system_msg)
 
