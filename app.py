@@ -428,8 +428,13 @@ CRITICAL RULES:
         
         # Generate specific improvements if AI improvements are generic
         if data.get("improvements") and len(data["improvements"]) > 0:
-            if any("add" in imp.lower() and "metric" in imp.lower() for imp in data["improvements"]):
-                # AI improvements are too generic, generate specific ones
+            # Check if improvements are too generic
+            generic_keywords = ["enhance", "improve", "add", "consider", "include"]
+            is_generic = all(
+                any(kw in imp.lower() for kw in generic_keywords)
+                for imp in data["improvements"]
+            )
+            if is_generic:
                 data["improvements"] = generate_specific_improvements(data)
     except Exception as e:
         data = {
