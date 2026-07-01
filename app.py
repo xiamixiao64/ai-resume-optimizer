@@ -148,7 +148,7 @@ def fix_round_numbers(text):
     return text
 
 def generate_specific_improvements(data):
-    """Generate specific improvements based on resume content"""
+    """Generate specific, actionable improvements based on resume content"""
     improvements = []
     
     # Check experience section
@@ -156,33 +156,43 @@ def generate_specific_improvements(data):
     if experience:
         for idx, exp in enumerate(experience):
             if isinstance(exp, dict):
+                company = exp.get("company", "this position")
                 bullets = exp.get("bullets", [])
-                bullet_idx = 0
-                for bullet in bullets:
-                    # Check if bullet has metrics
-                    has_number = False
-                    for c in bullet:
-                        if c.isdigit():
-                            has_number = True
+                
+                # Check each bullet point
+                for bullet_idx, bullet in enumerate(bullets):
+                    # Check if bullet has specific metrics (not just generic percentages)
+                    has_specific_metric = False
+                    for metric in ["$", "K", "M", "users", "customers", "projects", "features", "applications", "revenue", "cost"]:
+                        if metric.lower() in bullet.lower():
+                            has_specific_metric = True
                             break
-                    if not has_number:
-                        company = exp.get("company", "company")
-                        improvements.append("Add quantifiable metric to %s bullet point %d" % (company, bullet_idx + 1))
-                    # Check if bullet starts with action verb
-                    if bullet and not bullet[0].isupper():
-                        company = exp.get("company", "company")
-                        improvements.append("Start bullet point with action verb in %s section" % company)
-                    bullet_idx += 1
+                    
+                    if not has_specific_metric:
+                        improvements.append("Add specific business impact metric to %s bullet %d (e.g., revenue, users, cost savings)" % (company, bullet_idx + 1))
+                
+                # Check if bullets start with strong action verbs
+                strong_verbs = ["architected", "led", "implemented", "optimized", "reduced", "increased", "delivered", "designed", "built", "automated", "launched", "scaled"]
+                for bullet in bullets:
+                    first_word = bullet.split()[0].lower() if bullet.split() else ""
+                    if first_word not in strong_verbs:
+                        improvements.append("Start bullet points with stronger action verbs (e.g., Architected, Led, Implemented)")
+                        break
     
-    # Check skills section
+    # Check skills section - always suggest reordering
     skills = data.get("skills", [])
-    if skills and len(skills) < 5:
-        improvements.append("Add more relevant technical skills to skills section")
+    if skills:
+        improvements.append("Reorder skills to match job description keywords (put most relevant first)")
     
-    # Check summary
+    # Check summary - always suggest making it more concise
     summary = data.get("summary", "")
-    if summary and len(summary.split()) > 30:
-        improvements.append("Shorten professional summary to 2 sentences max")
+    if summary:
+        word_count = len(summary.split())
+        if word_count > 25:
+            improvements.append("Shorten professional summary to 2 sentences (currently %d words)" % word_count)
+    
+    # Always add these generic but useful suggestions
+    improvements.append("Add links to GitHub/portfolio/LinkedIn in contact section")
     
     # Limit to 4 most important
     return improvements[:4]
