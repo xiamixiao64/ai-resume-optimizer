@@ -19,46 +19,37 @@ def load_env():
 
 load_env()
 
-SILICONFLOW_API_KEY = os.environ.get('SILICONFLOW_API_KEY', '')
-if not SILICONFLOW_API_KEY:
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+if not GEMINI_API_KEY:
     for p in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'),
               os.path.join(os.getcwd(), '.env')]:
         try:
             with open(p) as f:
                 for line in f:
-                    if line.strip().startswith('SILICONFLOW_API_KEY='):
-                        SILICONFLOW_API_KEY = line.strip().split('=', 1)[1].strip()
+                    if line.strip().startswith('GEMINI_API_KEY='):
+                        GEMINI_API_KEY = line.strip().split('=', 1)[1].strip()
                         break
-            if SILICONFLOW_API_KEY:
+            if GEMINI_API_KEY:
                 break
         except:
             pass
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
-API_KEY = OPENAI_API_KEY or SILICONFLOW_API_KEY
-API_BASE = "https://api.openai.com/v1" if OPENAI_API_KEY else "https://api.siliconflow.cn/v1"
-MODEL = "gpt-4o-mini" if OPENAI_API_KEY else "Qwen/Qwen2.5-7B-Instruct"
 
-def call_openai(prompt, system_msg="You are an expert resume optimizer and career coach."):
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
+def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
     try:
         import requests as std_requests
+        full_prompt = f"{system_msg}\n\n{prompt}"
         resp = std_requests.post(
-            f"{API_BASE}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {API_KEY}",
-                "Content-Type": "application/json"
-            },
+            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+            headers={"Content-Type": "application/json"},
             json={
-                "model": MODEL,
-                "messages": [
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.7,
-                "max_tokens": 3000
+                "contents": [{"parts": [{"text": full_prompt}]}],
+                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 3000}
             },
-            timeout=30
+            timeout=60
         )
-        return resp.json()["choices"][0]["message"]["content"]
+        return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -140,7 +131,7 @@ Return ONLY valid JSON, no markdown."""
 Analyze resumes thoroughly and provide actionable, specific improvements.
 Always return valid JSON with the fields requested."""
 
-    result = call_openai(prompt, system_msg)
+    result = call_ai(prompt, system_msg)
 
     try:
         result = result.strip()
@@ -186,7 +177,7 @@ RESUME:
 JOB DESCRIPTION:
 {job_description or 'N/A'}"""
 
-    result = call_openai(prompt)
+    result = call_ai(prompt)
     try:
         result = result.strip()
         if result.startswith("```"):
@@ -199,7 +190,7 @@ JOB DESCRIPTION:
 
 @app.route('/health')
 def health():
-    return jsonify({"status": "ok", "siliconflow_key_set": bool(SILICONFLOW_API_KEY), "key_len": len(SILICONFLOW_API_KEY)})
+    return jsonify({"status": "ok", "gemini_key_set": bool(GEMINI_API_KEY)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
