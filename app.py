@@ -149,15 +149,24 @@ Return ONLY valid JSON with double quotes:
 }}"""
 
     else:
-        prompt = f"""You are an expert ATS resume optimizer. Optimize the resume below for the job description.
+        prompt = f"""You are an expert ATS resume optimizer. Your job is to IMPROVE the resume, not rewrite it from scratch.
 
-IMPORTANT RULES:
-1. The optimized_resume field MUST be clean formatted text (NOT JSON, NOT Python dict)
-2. Use this exact format for optimized_resume:
-   - Use uppercase section headers (EXPERIENCE, EDUCATION, SKILLS)
-   - Use bullet points with dashes
-   - Keep it scannable and professional
-3. Return ONLY valid JSON with double quotes
+CRITICAL RULES:
+1. PRESERVE the original structure - keep all section headers, company names, dates, locations
+2. KEEP all existing content - enhance it, don't remove it
+3. IMPROVE bullet points by:
+   - Starting with strong action verbs (Led, Built, Implemented, Optimized, Reduced, Increased)
+   - Adding specific metrics and numbers where possible
+   - Making achievements quantifiable
+4. ADD relevant keywords from the job description naturally
+5. MAINTAIN professional formatting - mixed case (not all caps), proper spacing
+
+DO NOT:
+- Change the overall structure
+- Remove any sections
+- Use all uppercase text
+- Invent false information
+- Remove company names or dates
 
 RESUME:
 {resume_text}
@@ -165,22 +174,28 @@ RESUME:
 JOB DESCRIPTION:
 {job_description or "N/A"}
 
-Return this exact JSON structure:
+Return ONLY valid JSON with this structure:
 {{
-  "ats_score": <number 0-100>,
-  "optimized_resume": "<clean formatted resume text with sections and bullet points>",
-  "improvements": ["<improvement 1>", "<improvement 2>", ...],
-  "keyword_match": ["<keyword 1>", "<keyword 2>", ...],
-  "missing_keywords": ["<keyword 1>", "<keyword 2>", ...]
-}}"""
+  "ats_score": <number 0-100 based on ATS compatibility>,
+  "optimized_resume": "<the FULL improved resume with preserved structure and enhanced bullet points>",
+  "improvements": ["<specific improvement 1>", "<specific improvement 2>", ...],
+  "keyword_match": ["<matched keyword 1>", "<matched keyword 2>", ...],
+  "missing_keywords": ["<missing keyword 1>", "<missing keyword 2>", ...]
+}}
 
-    system_msg = """You are an expert ATS resume optimizer. 
-CRITICAL RULES:
-1. Return ONLY valid JSON - no text before or after
-2. No markdown code blocks, no explanations
-3. The optimized_resume field MUST be clean formatted text with uppercase headers and bullet points
-4. Use double quotes for all strings
-5. Escape newlines in strings as \\n"""
+The optimized_resume MUST look like a real, professional resume with proper formatting."""
+
+    system_msg = """You are an expert ATS resume optimizer with 15 years of experience.
+Your job is to IMPROVE resumes, not rewrite them from scratch.
+
+KEY PRINCIPLES:
+1. PRESERVE original structure - keep all sections, company names, dates, locations
+2. ENHANCE bullet points - add action verbs, metrics, quantifiable achievements
+3. ADD relevant keywords from job description naturally
+4. MAINTAIN professional formatting - mixed case, proper spacing
+5. Return ONLY valid JSON - no text before or after
+
+You make small, targeted improvements that significantly increase ATS compatibility while keeping the resume authentic and professional."""
 
     result = call_ai(prompt, system_msg)
 
