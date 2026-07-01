@@ -152,28 +152,37 @@ def generate_specific_improvements(data):
     improvements = []
     
     # Check experience section
-    if "experience" in data and data["experience"]:
-        for i, exp in enumerate(data["experience]):
+    experience = data.get("experience", [])
+    if experience:
+        for idx, exp in enumerate(experience):
             if isinstance(exp, dict):
                 bullets = exp.get("bullets", [])
-                for j, bullet in enumerate(bullets):
+                bullet_idx = 0
+                for bullet in bullets:
                     # Check if bullet has metrics
-                    if not any(c.isdigit() for c in bullet):
-                        improvements.append(f"Add quantifiable metric to {exp.get('company', 'company')} bullet point {j+1}")
+                    has_number = False
+                    for c in bullet:
+                        if c.isdigit():
+                            has_number = True
+                            break
+                    if not has_number:
+                        company = exp.get("company", "company")
+                        improvements.append("Add quantifiable metric to %s bullet point %d" % (company, bullet_idx + 1))
                     # Check if bullet starts with action verb
-                    if not bullet[0].isupper():
-                        improvements.append(f"Start bullet point with action verb in {exp.get('company', 'company')} section")
+                    if bullet and not bullet[0].isupper():
+                        company = exp.get("company", "company")
+                        improvements.append("Start bullet point with action verb in %s section" % company)
+                    bullet_idx += 1
     
     # Check skills section
-    if "skills" in data and data["skills"]:
-        skills = data["skills"]
-        if len(skills) < 5:
-            improvements.append("Add more relevant technical skills to skills section")
+    skills = data.get("skills", [])
+    if skills and len(skills) < 5:
+        improvements.append("Add more relevant technical skills to skills section")
     
     # Check summary
-    if "summary" in data and data["summary"]:
-        if len(data["summary"].split()) > 30:
-            improvements.append("Shorten professional summary to 2 sentences max")
+    summary = data.get("summary", "")
+    if summary and len(summary.split()) > 30:
+        improvements.append("Shorten professional summary to 2 sentences max")
     
     # Limit to 4 most important
     return improvements[:4]
