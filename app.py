@@ -67,25 +67,24 @@ def optimize():
         return jsonify({'error': 'Please paste your resume'}), 400
 
     if mode == 'ats':
-        prompt = f"""Analyze this resume for ATS (Applicant Tracking System) compatibility.
+        prompt = f"""Analyze this resume for ATS compatibility. Return ONLY valid JSON with double quotes.
 
 RESUME:
 {resume_text}
 
-{"JOB DESCRIPTION (for targeting):" + chr(10) + job_description if job_description else ""}
+{("JOB DESCRIPTION: " + job_description) if job_description else ""}
 
-Return a JSON response with:
-1. "ats_score": number 0-100
-2. "keyword_match": list of matched keywords
-3. "missing_keywords": list of important missing keywords
-4. "format_issues": list of formatting problems
-5. "improvements": list of specific improvements to make
-6. "optimized_resume": the full optimized resume text
-
-Return ONLY valid JSON, no markdown."""
+Return this exact JSON:
+{{
+  "ats_score": <number 0-100>,
+  "keyword_match": ["keyword1", "keyword2"],
+  "missing_keywords": ["keyword1", "keyword2"],
+  "improvements": ["improvement1", "improvement2"],
+  "optimized_resume": "<clean formatted resume text>"
+}}"""
 
     elif mode == 'keywords':
-        prompt = f"""Extract and suggest keywords for this resume to match job requirements.
+        prompt = f"""Extract and suggest keywords for this resume. Return ONLY valid JSON with double quotes.
 
 RESUME:
 {resume_text}
@@ -93,43 +92,43 @@ RESUME:
 JOB DESCRIPTION:
 {job_description or "N/A"}
 
-Return a JSON response with:
-1. "current_keywords": list of keywords already in resume
-2. "suggested_keywords": list of keywords to add
-3. "industry_terms": list of industry-specific terms to include
-4. "action_verbs": list of stronger action verbs to use
-5. "optimized_resume": the full resume with keywords integrated
-
-Return ONLY valid JSON, no markdown."""
+Return this exact JSON:
+{{
+  "ats_score": <number 0-100>,
+  "keyword_match": ["existing keyword1", "existing keyword2"],
+  "missing_keywords": ["suggested keyword1", "suggested keyword2"],
+  "improvements": ["suggestion1", "suggestion2"],
+  "optimized_resume": "<clean formatted resume with keywords integrated>"
+}}"""
 
     else:
-        prompt = f"""Optimize this resume for maximum impact and ATS compatibility.
+        prompt = f"""You are an expert ATS resume optimizer. Optimize the resume below for the job description.
+
+IMPORTANT RULES:
+1. The optimized_resume field MUST be clean formatted text (NOT JSON, NOT Python dict)
+2. Use this exact format for optimized_resume:
+   - Use uppercase section headers (EXPERIENCE, EDUCATION, SKILLS)
+   - Use bullet points with dashes
+   - Keep it scannable and professional
+3. Return ONLY valid JSON with double quotes
 
 RESUME:
 {resume_text}
 
-{"JOB DESCRIPTION (target this role):" + chr(10) + job_description if job_description else ""}
+JOB DESCRIPTION:
+{job_description or "N/A"}
 
-Provide:
-1. An optimized version of the resume
-2. ATS score (0-100)
-3. List of improvements made
-4. Keywords matched/missing
-5. Specific bullet point improvements
+Return this exact JSON structure:
+{{
+  "ats_score": <number 0-100>,
+  "optimized_resume": "<clean formatted resume text with sections and bullet points>",
+  "improvements": ["<improvement 1>", "<improvement 2>", ...],
+  "keyword_match": ["<keyword 1>", "<keyword 2>", ...],
+  "missing_keywords": ["<keyword 1>", "<keyword 2>", ...]
+}}"""
 
-Return a JSON response with:
-1. "ats_score": number
-2. "optimized_resume": the full optimized resume
-3. "improvements": list of improvements
-4. "keyword_match": list
-5. "missing_keywords": list
-6. "bullet_improvements": list of before/after bullet points
-
-Return ONLY valid JSON, no markdown."""
-
-    system_msg = """You are an expert resume writer and ATS optimization specialist with 15+ years of experience.
-Analyze resumes thoroughly and provide actionable, specific improvements.
-Always return valid JSON with the fields requested."""
+    system_msg = """You are an expert ATS resume optimizer. Return ONLY valid JSON with double quotes.
+The optimized_resume field must be clean formatted text with sections and bullet points, NOT a dict or nested JSON."""
 
     result = call_ai(prompt, system_msg)
 
@@ -137,7 +136,11 @@ Always return valid JSON with the fields requested."""
         result = result.strip()
         if result.startswith("```"):
             result = result.split("\n", 1)[1].rsplit("```", 1)[0]
+        if result.startswith("json"):
+            result = result[4:].strip()
         data = json.loads(result)
+        if "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
+            data["optimized_resume"] = json.dumps(data["optimized_resume"], indent=2)
     except:
         data = {
             "ats_score": 65,
