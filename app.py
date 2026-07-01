@@ -24,7 +24,7 @@ load_env()
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 def format_resume_dict(resume_dict):
     """Convert a dict resume to professional formatted text"""
