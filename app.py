@@ -187,6 +187,10 @@ The optimized_resume field must be clean formatted text with sections and bullet
             result = result.split("\n", 1)[1].rsplit("```", 1)[0]
         if result.startswith("json"):
             result = result[4:].strip()
+        json_start = result.find('{')
+        json_end = result.rfind('}')
+        if json_start != -1 and json_end != -1:
+            result = result[json_start:json_end+1]
         data = json.loads(result)
         if "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
             data["optimized_resume"] = json.dumps(data["optimized_resume"], indent=2)
