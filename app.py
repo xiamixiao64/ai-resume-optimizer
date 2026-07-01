@@ -132,20 +132,55 @@ def format_structured_resume(data):
 
 def fix_round_numbers(text):
     """Replace round numbers with more realistic variations"""
+    import re
     
-    # Replace common round percentages
-    replacements = {
-        '50%': '47%', '25%': '23%', '30%': '28%', '20%': '18%',
-        '100%': '98%', '75%': '72%', '40%': '38%', '60%': '57%',
-        '95%': '93%', '80%': '78%', '10%': '12%', '5%': '7%',
-        '15%': '14%', '35%': '33%', '45%': '42%', '55%': '53%',
-        '65%': '62%', '70%': '68%', '85%': '82%', '90%': '87%',
-    }
+    def replace_percentage(match):
+        num = int(match.group(1))
+        # Replace round numbers with varied alternatives
+        round_map = {
+            5: 7, 10: 12, 15: 14, 20: 18, 25: 23, 30: 28, 35: 33,
+            40: 38, 45: 42, 50: 47, 55: 53, 60: 57, 65: 62,
+            70: 68, 75: 72, 80: 78, 85: 82, 90: 87, 95: 93, 100: 98
+        }
+        if num in round_map:
+            return str(round_map[num]) + "%"
+        return match.group(0)
     
-    for old, new in replacements.items():
-        text = text.replace(old, new)
+    # Replace any percentage that is a multiple of 5
+    text = re.sub(r'(\d+)%', replace_percentage, text)
     
     return text
+
+def expand_skills(skills, job_description):
+    """Expand skills list based on job description keywords"""
+    if not skills:
+        skills = []
+    
+    # Common tech skills to look for in JD
+    tech_keywords = [
+        "Python", "Java", "JavaScript", "TypeScript", "React", "Vue", "Angular",
+        "Node.js", "Django", "Flask", "Spring", "Spring Boot", "Express",
+        "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite",
+        "Docker", "Kubernetes", "AWS", "Azure", "GCP", "CI/CD",
+        "Git", "GitHub", "GitLab", "REST API", "GraphQL", "Microservices",
+        "Agile", "Scrum", "TDD", "Linux", "Nginx", "Apache"
+    ]
+    
+    # Add skills from JD that are not already in skills
+    if job_description:
+        jd_lower = job_description.lower()
+        for skill in tech_keywords:
+            if skill.lower() in jd_lower and skill not in skills:
+                skills.append(skill)
+    
+    # Ensure at least 8 skills
+    if len(skills) < 8:
+        defaults = ["Python", "JavaScript", "SQL", "Git", "REST APIs", "Agile", "Problem Solving", "Team Collaboration"]
+        for skill in defaults:
+            if skill not in skills and len(skills) < 8:
+                skills.append(skill)
+    
+    return skills[:15]  # Cap at 15 skills
 
 def generate_specific_improvements(data):
     """Generate specific, actionable improvements based on resume content"""
@@ -302,6 +337,10 @@ def optimize():
             result = result[json_start:json_end+1]
         
         data = json.loads(result)
+        
+        # Expand skills based on job description
+        if "skills" in data and job_description:
+            data["skills"] = expand_skills(data.get("skills", []), job_description)
         
         # Format the resume for display
         if "name" in data:
