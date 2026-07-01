@@ -353,14 +353,6 @@ Improve bullet points with action verbs and quantifiable results."""
             "keyword_match": [],
             "missing_keywords": []
         }
-    except Exception as e:
-        data = {
-            "ats_score": 65,
-            "optimized_resume": result if len(result) < 5000 else result[:5000],
-            "improvements": ["AI analysis completed - review the optimized version"],
-            "keyword_match": [],
-            "missing_keywords": []
-        }
 
     proof_id = str(uuid.uuid4())[:8]
     proof = {
