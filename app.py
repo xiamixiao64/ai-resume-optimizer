@@ -259,133 +259,28 @@ def optimize():
     if not resume_text:
         return jsonify({'error': 'Please paste your resume'}), 400
 
+    jd = job_description or "N/A"
+    
     if mode == 'ats':
-        prompt = f"""Analyze this resume for ATS compatibility. Return ONLY valid JSON with double quotes.
-
-RESUME:
-{resume_text}
-
-{("JOB DESCRIPTION: " + job_description) if job_description else ""}
-
-Return this exact JSON:
-{{
-  "ats_score": <number 0-100>,
-  "keyword_match": ["keyword1", "keyword2"],
-  "missing_keywords": ["keyword1", "keyword2"],
-  "improvements": ["improvement1", "improvement2"],
-  "optimized_resume": "<clean formatted resume text>"
-}}"""
+        prompt = "Analyze this resume for ATS compatibility. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"ats_score\": 0-100, \"keyword_match\": [...], \"missing_keywords\": [...], \"improvements\": [...], \"optimized_resume\": \"...\"}"
 
     elif mode == 'keywords':
-        prompt = f"""Extract and suggest keywords for this resume. Return ONLY valid JSON with double quotes.
-
-RESUME:
-{resume_text}
-
-JOB DESCRIPTION:
-{job_description or "N/A"}
-
-Return this exact JSON:
-{{
-  "ats_score": <number 0-100>,
-  "keyword_match": ["existing keyword1", "existing keyword2"],
-  "missing_keywords": ["suggested keyword1", "suggested keyword2"],
-  "improvements": ["suggestion1", "suggestion2"],
-  "optimized_resume": "<clean formatted resume with keywords integrated>"
-}}"""
+        prompt = "Extract keywords for this resume. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"ats_score\": 0-100, \"keyword_match\": [...], \"missing_keywords\": [...], \"improvements\": [...], \"optimized_resume\": \"...\"}"
 
     elif mode == 'cover_letter':
-        prompt = f"""Generate a professional cover letter for this candidate applying to this job.
-
-CANDIDATE RESUME:
-{resume_text}
-
-JOB DESCRIPTION:
-{job_description or "N/A"}
-
-Write a compelling 3-paragraph cover letter:
-1. Opening: Hook with enthusiasm and role fit
-2. Body: Match 2-3 key skills to job requirements with specific examples
-3. Closing: Call to action and thank you
-
-Return ONLY valid JSON with double quotes:
-{{
-  "cover_letter": "<the full cover letter text>",
-  "ats_score": <number 0-100>,
-  "key_matches": ["skill match 1", "skill match 2", "skill match 3"]
-}}"""
+        prompt = "Generate a cover letter. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"cover_letter\": \"...\", \"ats_score\": 0-100, \"key_matches\": [...]}"
 
     else:
-        prompt = f"""You are a senior technical recruiter. Optimize this resume for the job.
+        prompt = "Optimize this resume. Return ONLY valid JSON with this structure:\n"
+        prompt += "{\"ats_score\": 0-100, \"name\": \"...\", \"contact\": \"...\", \"summary\": \"2 sentences\", "
+        prompt += "\"experience\": [{\"title\": \"...\", \"company\": \"KEEP ORIGINAL\", \"location\": \"...\", \"dates\": \"...\", \"bullets\": [\"...\"]}], "
+        prompt += "\"education\": [{\"degree\": \"...\", \"school\": \"...\", \"year\": \"...\"}], "
+        prompt += "\"skills\": [...], \"improvements\": [\"specific to THIS resume\"], "
+        prompt += "\"keyword_match\": [\"exact from JD\"], \"missing_keywords\": [\"exact from JD not in resume\"]}\n\n"
+        prompt += "RULES: Keep original structure. Improve bullets with action verbs and realistic metrics (12%, 18%, 37%, not 20%, 25%, 30%). Add JD keywords. Keep company names.\n\n"
+        prompt += "RESUME:\n" + resume_text + "\n\nTARGET JOB:\n" + jd
 
-RESUME:
-{resume_text}
-
-TARGET JOB:
-{job_description or "N/A"}
-
-RULES:
-
-1. BULLET POINTS - Start with action verb, add realistic metrics:
-   - Use varied numbers: 12%, 18%, 37%, 45% (NOT 20%, 25%, 30%, 50%)
-   - Use ranges: "15-20%", "3x-4x", "10K-15K"
-   - Use specific counts: "12 features", "8 microservices", "40+ PRs"
-   - Example: "Optimized API response time from 2.3s to 890ms, reducing user churn by 18%"
-
-2. IMPROVEMENTS - Be SPECIFIC to THIS resume:
-   - "Add quantifiable metric to WeChat mini-program bullet point"
-   - "Reorder skills to put Python first (matching job description)"
-   - "Add cloud platform experience (AWS/Azure) if available"
-   - NOT: "Learn TensorFlow" or "Explore machine learning"
-
-3. KEEP original company names - never change them
-   - If resume says "Personal Projects", keep it
-   - If resume says "ABC Corp", keep it
-
-4. SUMMARY - 2 sentences max, tailored to job:
-   - Years of experience + top 3 skills + career goal
-   - Match keywords from job description
-
-JSON STRUCTURE:
-{{
-  "ats_score": <0-100>,
-  "name": "<name>",
-  "contact": "<contact>",
-  "summary": "<2 sentence summary>",
-  "experience": [
-    {{
-      "title": "<title>",
-      "company": "<company - KEEP ORIGINAL>",
-      "location": "<location>",
-      "dates": "<dates>",
-      "bullets": ["<enhanced bullet>", ...]
-    }}
-  ],
-  "education": [...],
-  "skills": [...],
-  "improvements": ["<specific to THIS resume>"],
-  "keyword_match": ["<exact from JD>"],
-  "missing_keywords": ["<exact from JD not in resume>"]
-}}"""
-
-RULES:
-1. Keep ALL original information - enhance, don't remove
-2. Improve bullet points with action verbs and metrics
-3. Add keywords from job description naturally
-4. Return ONLY valid JSON"""
-
-    system_msg = """You are a senior technical recruiter who has reviewed 50,000+ resumes.
-
-CRITICAL RULES:
-1. METRICS must be realistic and varied:
-   - Use: 12%, 18%, 37%, 45%, 15-20%, 3x-4x, 10K-15K
-   - NEVER use: 20%, 25%, 30%, 50%, 100% (too round, looks fake)
-2. IMPROVEMENTS must be specific to the resume content:
-   - "Add metric to WeChat project bullet point"
-   - "Reorder skills to match job description"
-   - NOT "Learn TensorFlow" or "Explore machine learning"
-3. KEEP original company names - never change them
-4. Return ONLY valid JSON"""
+    system_msg = "Return ONLY valid JSON. No markdown, no explanations."
 
     result = call_ai(prompt, system_msg)
 
@@ -464,19 +359,10 @@ def export_pdf():
     if not resume_content:
         return jsonify({'error': 'No content'}), 400
 
-    html_content = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<style>
-body {{ font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }}
-h1 {{ font-size: 18pt; margin-bottom: 5px; color: #1a1a1a; }}
-h2 {{ font-size: 13pt; border-bottom: 1px solid #333; padding-bottom: 3px; margin-top: 20px; color: #1a1a1a; text-transform: uppercase; }}
-p {{ margin: 3px 0; }}
-ul {{ margin: 5px 0; padding-left: 20px; }}
-li {{ margin: 2px 0; }}
-.contact {{ color: #555; font-size: 10pt; margin-bottom: 15px; }}
-</style></head><body>
-{resume_content.replace(chr(10), '<br>').replace('  ', '&nbsp;')}
-</body></html>"""
+    css = "body{font-family:Arial;font-size:11pt;line-height:1.5;color:#333;max-width:800px;margin:0 auto;padding:40px}"
+    html_content = "<!DOCTYPE html><html><head><meta charset='UTF-8'><style>" + css + "</style></head><body>"
+    html_content += resume_content.replace(chr(10), '<br>').replace('  ', '&nbsp;')
+    html_content += "</body></html>"
 
     try:
         from xhtml2pdf import pisa
@@ -485,7 +371,7 @@ li {{ margin: 2px 0; }}
         output.seek(0)
         return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='optimized_resume.pdf')
     except Exception as e:
-        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+        return jsonify({'error': 'PDF generation failed: ' + str(e)}), 500
 
 @app.route('/api/optimize', methods=['POST'])
 def api_optimize():
@@ -497,13 +383,7 @@ def api_optimize():
     if not resume_text:
         return jsonify({'error': 'resume required'}), 400
 
-    prompt = f"""Optimize this resume. Return JSON with: ats_score, optimized_resume, improvements, keyword_match, missing_keywords.
-
-RESUME:
-{resume_text}
-
-JOB DESCRIPTION:
-{job_description or 'N/A'}"""
+    prompt = "Optimize this resume. Return JSON with: ats_score, optimized_resume, improvements, keyword_match, missing_keywords.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + (job_description or "N/A")
 
     result = call_ai(prompt)
     try:
