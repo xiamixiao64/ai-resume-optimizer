@@ -426,16 +426,11 @@ CRITICAL RULES:
             if field not in data:
                 data[field] = [] if field in ["improvements", "keyword_match", "missing_keywords"] else (65 if field == "ats_score" else "")
         
-        # Generate specific improvements if AI improvements are generic
-        if data.get("improvements") and len(data["improvements"]) > 0:
-            # Check if improvements are too generic
-            generic_keywords = ["enhance", "improve", "add", "consider", "include"]
-            is_generic = all(
-                any(kw in imp.lower() for kw in generic_keywords)
-                for imp in data["improvements"]
-            )
-            if is_generic:
-                data["improvements"] = generate_specific_improvements(data)
+        # Generate specific improvements based on resume content
+        if data.get("experience") or data.get("skills") or data.get("summary"):
+            specific_improvements = generate_specific_improvements(data)
+            if specific_improvements:
+                data["improvements"] = specific_improvements
     except Exception as e:
         data = {
             "ats_score": 65,
