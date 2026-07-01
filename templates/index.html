@@ -98,7 +98,7 @@
         </div>
 
         <div class="card">
-            <h2>Optimize Your Resume <span class="free-badge">3 FREE</span></h2>
+            <h2>Optimize Your Resume <span class="free-badge" id="freeBadge">3 FREE</span></h2>
             <div class="mode-select">
                 <div class="mode-btn active" data-mode="optimize" onclick="setMode(this)">
                     <span class="icon">🚀</span>Full Optimize
@@ -210,15 +210,86 @@
     </div>
 
     <script>
+        // Usage tracking
+        function getUsageCount() {
+            return parseInt(localStorage.getItem('resumeforge_usage') || '0');
+        }
+        
+        function incrementUsage() {
+            const count = getUsageCount() + 1;
+            localStorage.setItem('resumeforge_usage', count.toString());
+            return count;
+        }
+        
+        function checkUsageLimit() {
+            const count = getUsageCount();
+            if (count >= 3) {
+                showPaywall();
+                return false;
+            }
+            updateFreeCount(3 - count);
+            return true;
+        }
+        
+        function updateFreeCount(remaining) {
+            const badge = document.querySelector('.free-badge');
+            if (badge) {
+                badge.textContent = remaining + ' FREE';
+                if (remaining <= 1) {
+                    badge.style.background = '#ef4444';
+                }
+            }
+        }
+        
+        function showPaywall() {
+            const card = document.querySelector('.card');
+            card.innerHTML = `
+                <div style="text-align:center;padding:40px">
+                    <h2 style="color:#fff;margin-bottom:16px">Free Limit Reached</h2>
+                    <p style="color:#888;margin-bottom:24px">You've used all 3 free optimizations.</p>
+                    <div style="background:#1a1030;border:2px solid #6366f1;border-radius:12px;padding:30px;margin-bottom:24px">
+                        <div style="font-size:0.9rem;color:#a855f7;font-weight:600;margin-bottom:8px">PRO PLAN</div>
+                        <div style="font-size:2.5rem;font-weight:800;color:#fff">$9.9<span style="font-size:1rem;color:#888">/month</span></div>
+                        <ul style="text-align:left;margin:20px 0;list-style:none;color:#ccc">
+                            <li style="padding:6px 0">✓ Unlimited optimizations</li>
+                            <li style="padding:6px 0">✓ Advanced ATS scoring</li>
+                            <li style="padding:6px 0">✓ Keyword gap analysis</li>
+                            <li style="padding:6px 0">✓ Cover letter generation</li>
+                            <li style="padding:6px 0">✓ PDF export</li>
+                        </ul>
+                        <button onclick="alert('Stripe integration coming soon!')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;border-radius:10px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer">Upgrade to Pro</button>
+                    </div>
+                    <p style="color:#555;font-size:0.85rem">Or wait 24 hours for 3 more free uses</p>
+                </div>
+            `;
+        }
+        
         function setMode(el) {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             document.getElementById('modeInput').value = el.dataset.mode;
         }
-        document.getElementById('optimizeForm').addEventListener('submit', function() {
+        
+        document.getElementById('optimizeForm').addEventListener('submit', function(e) {
+            if (!checkUsageLimit()) {
+                e.preventDefault();
+                return;
+            }
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
+            incrementUsage();
         });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const remaining = 3 - getUsageCount();
+            if (remaining <= 0) {
+                showPaywall();
+            } else {
+                updateFreeCount(remaining);
+            }
+        });
+        
         async function handleFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
