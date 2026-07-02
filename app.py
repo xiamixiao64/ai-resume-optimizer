@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, session, redirect, url_for
+from dotenv import load_dotenv
 import os
 import io
 import json
@@ -8,23 +9,167 @@ import uuid
 import re
 import random
 
+# Load environment variables
+load_dotenv()
+
 app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 
-def load_env():
-    env_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(env_path):
-        with open(env_path) as f:
-            for line in f:
-                line = line.strip()
-                if line and '=' in line and not line.startswith('#'):
-                    k, v = line.split('=', 1)
-                    os.environ.setdefault(k.strip(), v.strip())
+# Supabase config
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 
-load_env()
+# Initialize Supabase client
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    from supabase import create_client
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# LemonSqueezy config
+LEMONSQUEEZY_API_KEY = os.environ.get('LEMONSQUEEZY_API_KEY', '')
+LEMONSQUEEZY_STORE_ID = os.environ.get('LEMONSQUEEZY_STORE_ID', '')
+LEMONSQUEEZY_VARIANT_ID = os.environ.get('LEMONSQUEEZY_VARIANT_ID', '')
+
+# Free tier limits
+FREE_OPTIMIZATIONS = 3
+
+def hash_password(password):
+    """Hash password with salt"""
+    salt = uuid.uuid4().hex
+    return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+
+def verify_password(stored, provided):
+    """Verify password against stored hash"""
+    password, salt = stored.split(':')
+    return hashlib.sha256(salt.encode() + provided.encode()).hexdigest() == password
+
+def get_current_user():
+    """Get current logged-in user or None"""
+    if 'user_id' not in session:
+        return None
+    user_id = session['user_id']
+    if not supabase:
+        # Fallback to in-memory for testing
+        return _memory_users.get(user_id)
+    try:
+        result = supabase.table('users').select('*').eq('id', user_id).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+    except Exception as e:
+        print(f"DB error: {e}")
+    return None
+
+def get_user_id():
+    """Get current logged-in user ID (required)"""
+    user = get_current_user()
+    if user:
+        return session['user_id']
+    return None
+
+# In-memory fallback for testing without Supabase
+_memory_users = {}
+
+def register_user(email, password):
+    """Register new user"""
+    if supabase:
+        # Check if email exists
+        result = supabase.table('users').select('id').eq('email', email).execute()
+        if result.data and len(result.data) > 0:
+            return None, "Email already registered"
+        # Create user
+        user_id = str(uuid.uuid4())[:8]
+        supabase.table('users').insert({
+            'id': user_id,
+            'email': email,
+            'password': hash_password(password),
+            'usage_count': 0,
+            'is_pro': False
+        }).execute()
+        return user_id, None
+    else:
+        # In-memory fallback
+        for uid, u in _memory_users.items():
+            if u['email'] == email:
+                return None, "Email already registered"
+        user_id = str(uuid.uuid4())[:8]
+        _memory_users[user_id] = {
+            'id': user_id,
+            'email': email,
+            'password': hash_password(password),
+            'usage_count': 0,
+            'is_pro': False
+        }
+        return user_id, None
+
+def login_user(email, password):
+    """Login user"""
+    if supabase:
+        result = supabase.table('users').select('*').eq('email', email).execute()
+        if not result.data or len(result.data) == 0:
+            return None, "Email not found"
+        user = result.data[0]
+        if not verify_password(user['password'], password):
+            return None, "Wrong password"
+        return user['id'], None
+    else:
+        # In-memory fallback
+        for uid, u in _memory_users.items():
+            if u['email'] == email:
+                if verify_password(u['password'], password):
+                    return uid, None
+                else:
+                    return None, "Wrong password"
+        return None, "Email not found"
+
+def get_user_usage(user_id):
+    """Get user's optimization count"""
+    if supabase:
+        result = supabase.table('users').select('usage_count').eq('id', user_id).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0].get('usage_count', 0)
+    else:
+        return _memory_users.get(user_id, {}).get('usage_count', 0)
+    return 0
+
+def is_pro_user(user_id):
+    """Check if user has pro subscription"""
+    if supabase:
+        result = supabase.table('users').select('is_pro').eq('id', user_id).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0].get('is_pro', False)
+    else:
+        return _memory_users.get(user_id, {}).get('is_pro', False)
+    return False
+
+def increment_usage(user_id):
+    """Increment user's usage count"""
+    current = get_user_usage(user_id)
+    new_count = current + 1
+    if supabase:
+        supabase.table('users').update({'usage_count': new_count}).eq('id', user_id).execute()
+    else:
+        if user_id in _memory_users:
+            _memory_users[user_id]['usage_count'] = new_count
+
+def check_usage_limit(user_id):
+    """Check if user has exceeded free tier"""
+    if not user_id:
+        return False
+    if is_pro_user(user_id):
+        return True
+    return get_user_usage(user_id) < FREE_OPTIMIZATIONS
+
+def set_pro_status(user_id, status=True):
+    """Set user's pro status"""
+    if supabase:
+        supabase.table('users').update({'is_pro': status}).eq('id', user_id).execute()
+    else:
+        if user_id in _memory_users:
+            _memory_users[user_id]['is_pro'] = status
 
 def format_resume_dict(resume_dict):
     """Convert a dict resume to professional formatted text"""
@@ -269,7 +414,43 @@ def parse_pdf(file):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('register'))
+    return render_template('index.html', user=user)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        user_id, error = login_user(email, password)
+        if error:
+            return render_template('login.html', error=error)
+        session['user_id'] = user_id
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        if not email or not password:
+            return render_template('register.html', error='Email and password required')
+        if len(password) < 6:
+            return render_template('register.html', error='Password must be 6+ characters')
+        user_id, error = register_user(email, password)
+        if error:
+            return render_template('register.html', error=error)
+        session['user_id'] = user_id
+        return redirect(url_for('index'))
+    return render_template('register.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -293,6 +474,16 @@ def optimize():
 
     if not resume_text:
         return jsonify({'error': 'Please paste your resume'}), 400
+
+    # Check usage limit
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Please register/login first'}), 401
+    if not check_usage_limit(user_id):
+        return jsonify({'error': 'Free limit reached. Please upgrade to Pro.'}), 403
+
+    # Increment usage
+    increment_usage(user_id)
 
     jd = job_description or "N/A"
     
@@ -438,6 +629,87 @@ def api_optimize():
 @app.route('/health')
 def health():
     return jsonify({"status": "ok", "groq_key_set": bool(GROQ_API_KEY)})
+
+@app.route('/api/usage')
+def get_usage():
+    """Get current user's usage status"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    usage = get_user_usage(user_id)
+    is_pro = is_pro_user(user_id)
+    remaining = max(0, FREE_OPTIMIZATIONS - usage) if not is_pro else -1
+    return jsonify({
+        'usage_count': usage,
+        'free_limit': FREE_OPTIMIZATIONS,
+        'remaining': remaining,
+        'is_pro': is_pro,
+        'user_id': user_id
+    })
+
+@app.route('/api/create-checkout', methods=['POST'])
+def create_checkout():
+    """Create LemonSqueezy checkout session"""
+    if not LEMONSQUEEZY_API_KEY:
+        return jsonify({'error': 'Payment not configured'}), 500
+
+    try:
+        import requests
+        resp = requests.post(
+            'https://api.lemonsqueezy.com/v1/checkouts',
+            headers={
+                'Authorization': f'Bearer {LEMONSQUEEZY_API_KEY}',
+                'Accept': 'application/vnd.api+json',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'data': {
+                    'type': 'checkouts',
+                    'attributes': {
+                        'product_id': int(LEMONSQUEEZY_STORE_ID),
+                        'variant_id': int(LEMONSQUEEZY_VARIANT_ID),
+                        'custom_data': {
+                            'user_id': get_user_id()
+                        }
+                    }
+                }
+            }
+        )
+        data = resp.json()
+        if 'data' in data and 'attributes' in data['data']:
+            checkout_url = data['data']['attributes']['url']
+            return jsonify({'checkout_url': checkout_url})
+        else:
+            return jsonify({'error': 'Failed to create checkout', 'details': data}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/webhook', methods=['POST'])
+def webhook():
+    """Handle LemonSqueezy webhook"""
+    # In production, verify webhook signature
+    data = request.json
+    if data and data.get('meta', {}).get('event_name') == 'order_created':
+        custom_data = data.get('data', {}).get('attributes', {}).get('custom_data', {})
+        user_id = custom_data.get('user_id')
+        if user_id:
+            set_pro_status(user_id, True)
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/check-usage', methods=['POST'])
+def check_usage():
+    """Check if user can perform optimization"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in', 'allowed': False}), 401
+    can_use = check_usage_limit(user_id)
+    if can_use:
+        increment_usage(user_id)
+    return jsonify({
+        'allowed': can_use,
+        'remaining': max(0, FREE_OPTIMIZATIONS - get_user_usage(user_id)) if not is_pro_user(user_id) else -1,
+        'is_pro': is_pro_user(user_id)
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

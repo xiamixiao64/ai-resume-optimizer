@@ -72,6 +72,10 @@
         .cta h2 { font-size: 1.8rem; margin-bottom: 12px; color: #fff; }
         .cta p { color: #888; margin-bottom: 24px; }
         .footer { text-align: center; padding: 40px 20px; color: #444; font-size: 0.85rem; border-top: 1px solid #222; }
+        .nav { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; align-items: center; }
+        .nav a { color: #a855f7; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .nav a:hover { text-decoration: underline; }
+        .nav .user-email { color: #888; font-size: 0.85rem; }
         .loading { display: none; text-align: center; padding: 40px; }
         .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -80,6 +84,15 @@
 </head>
 <body>
     <div class="hero">
+        <div class="nav">
+            {% if user %}
+            <span class="user-email">{{ user.email }}</span>
+            <a href="/logout">Logout</a>
+            {% else %}
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+            {% endif %}
+        </div>
         <span class="badge">AI-Powered Resume Optimization</span>
         <h1>Beat ATS Systems.<br>Land More Interviews.</h1>
         <p>75% of resumes are rejected by ATS before a human sees them. Our AI fixes yours in 30 seconds.</p>
@@ -210,37 +223,47 @@
     </div>
 
     <script>
-        // Usage tracking
-        function getUsageCount() {
-            return parseInt(localStorage.getItem('resumeforge_usage') || '0');
+        // Usage tracking - server-side
+        async function getUsage() {
+            try {
+                const resp = await fetch('/api/usage');
+                if (resp.status === 401) {
+                    window.location.href = '/register';
+                    return null;
+                }
+                return await resp.json();
+            } catch (e) {
+                window.location.href = '/register';
+                return null;
+            }
         }
-        
-        function incrementUsage() {
-            const count = getUsageCount() + 1;
-            localStorage.setItem('resumeforge_usage', count.toString());
-            return count;
-        }
-        
-        function checkUsageLimit() {
-            const count = getUsageCount();
-            if (count >= 3) {
+
+        async function checkUsageLimit() {
+            const usage = await getUsage();
+            if (!usage) return false;
+            if (!usage.is_pro && usage.remaining <= 0) {
                 showPaywall();
                 return false;
             }
-            updateFreeCount(3 - count);
+            updateFreeCount(usage.is_pro ? -1 : usage.remaining);
             return true;
         }
-        
+
         function updateFreeCount(remaining) {
             const badge = document.querySelector('.free-badge');
             if (badge) {
-                badge.textContent = remaining + ' FREE';
-                if (remaining <= 1) {
-                    badge.style.background = '#ef4444';
+                if (remaining < 0) {
+                    badge.textContent = 'PRO';
+                    badge.style.background = '#6366f1';
+                } else {
+                    badge.textContent = remaining + ' FREE';
+                    if (remaining <= 1) {
+                        badge.style.background = '#ef4444';
+                    }
                 }
             }
         }
-        
+
         function showPaywall() {
             const card = document.querySelector('.card');
             card.innerHTML = `
@@ -257,36 +280,89 @@
                             <li style="padding:6px 0">✓ Cover letter generation</li>
                             <li style="padding:6px 0">✓ PDF export</li>
                         </ul>
-                        <button onclick="alert('Stripe integration coming soon!')" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;border-radius:10px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer">Upgrade to Pro</button>
+                        <button onclick="upgradeToPro()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;border-radius:10px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer">Upgrade to Pro</button>
                     </div>
-                    <p style="color:#555;font-size:0.85rem">Or wait 24 hours for 3 more free uses</p>
+                    <p style="color:#555;font-size:0.85rem"><a href="/register" style="color:#a855f7">Register</a> to save your usage across devices</p>
                 </div>
             `;
         }
-        
+
+        async function upgradeToPro() {
+            try {
+                const resp = await fetch('/api/create-checkout', { method: 'POST' });
+                const data = await resp.json();
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Payment system not configured. Contact support.');
+                }
+            } catch (e) {
+                alert('Error creating checkout. Please try again.');
+            }
+        }
+
         function setMode(el) {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             document.getElementById('modeInput').value = el.dataset.mode;
         }
-        
-        document.getElementById('optimizeForm').addEventListener('submit', function(e) {
-            if (!checkUsageLimit()) {
-                e.preventDefault();
+
+        document.getElementById('optimizeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Check with server (this also increments usage if allowed)
+            const checkResp = await fetch('/api/check-usage', { method: 'POST' });
+            if (checkResp.status === 401) {
+                window.location.href = '/register';
                 return;
             }
+            const checkData = await checkResp.json();
+            if (!checkData.allowed) {
+                showPaywall();
+                return;
+            }
+
+            // Update UI
+            updateFreeCount(checkData.is_pro ? -1 : checkData.remaining);
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
-            incrementUsage();
+
+            // Submit form via AJAX
+            const formData = new FormData(document.getElementById('optimizeForm'));
+            try {
+                const resp = await fetch('/optimize', { method: 'POST', body: formData });
+                if (resp.status === 401) {
+                    window.location.href = '/register';
+                    return;
+                }
+                if (resp.status === 403) {
+                    showPaywall();
+                    document.getElementById('submitBtn').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
+                const html = await resp.text();
+                document.open();
+                document.write(html);
+                document.close();
+            } catch (err) {
+                document.getElementById('submitBtn').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                alert('Error: ' + err.message);
+            }
         });
-        
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            const remaining = 3 - getUsageCount();
-            if (remaining <= 0) {
+        document.addEventListener('DOMContentLoaded', async function() {
+            const usage = await getUsage();
+            if (!usage) {
+                // Not logged in, redirect handled by getUsage
+                return;
+            }
+            if (!usage.is_pro && usage.remaining <= 0) {
                 showPaywall();
             } else {
-                updateFreeCount(remaining);
+                updateFreeCount(usage.is_pro ? -1 : usage.remaining);
             }
         });
         
