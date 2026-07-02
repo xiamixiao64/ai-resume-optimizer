@@ -136,3 +136,92 @@ class ATSEngine:
                     bonus += 1
 
         return min(10, bonus)
+
+    def check_experience(self, resume_text):
+        """检查工作经验质量"""
+        score = 100
+        issues = []
+
+        bullets = self._extract_bullets(resume_text)
+
+        if len(bullets) == 0:
+            return {"score": 30, "issues": ["未找到工作经历描述"]}
+
+        # 检查 bullet point 数量
+        if len(bullets) < 3:
+            score -= 15
+            issues.append("工作经历描述过少，建议每个职位 3-5 个 bullet points")
+
+        # 检查量化数据
+        quantified = 0
+        for bullet in bullets:
+            if re.search(r'\d+%|\$[\d,]+|\d+ (users|customers|projects|team)', bullet, re.IGNORECASE):
+                quantified += 1
+
+        if len(bullets) > 0:
+            quantified_rate = quantified / len(bullets)
+            if quantified_rate < 0.3:
+                score -= 20
+                issues.append("缺少量化数据，建议添加具体数字（百分比、金额、用户数）")
+
+        # 检查动词强度
+        strong_verbs = ["led", "built", "increased", "reduced", "delivered", "launched",
+                       "managed", "developed", "implemented", "optimized", "designed"]
+        weak_verbs = ["helped", "assisted", "was responsible", "did", "worked on"]
+
+        strong_count = 0
+        weak_count = 0
+        for bullet in bullets:
+            bullet_lower = bullet.lower()
+            for verb in strong_verbs:
+                if bullet_lower.startswith(verb):
+                    strong_count += 1
+                    break
+            for verb in weak_verbs:
+                if verb in bullet_lower:
+                    weak_count += 1
+                    break
+
+        if weak_count > strong_count:
+            score -= 15
+            issues.append("使用了较弱的动词，建议使用更强的行动动词（Led, Built, Increased）")
+
+        # 检查长度
+        avg_length = sum(len(b.split()) for b in bullets) / len(bullets) if bullets else 0
+        if avg_length < 6:
+            score -= 10
+            issues.append("Bullet points 过短，建议每个 10-20 词")
+        elif avg_length > 30:
+            score -= 5
+            issues.append("Bullet points 过长，建议控制在 20 词以内")
+
+        return {"score": max(0, score), "issues": issues}
+
+    def _extract_bullets(self, text):
+        """提取 bullet points"""
+        bullets = []
+        lines = text.split('\n')
+        in_experience = False
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # 检测经验章节开始
+            if 'experience' in line.lower() or 'work history' in line.lower():
+                in_experience = True
+                continue
+
+            # 检测其他章节开始
+            if line.isupper() and len(line) > 3:
+                in_experience = False
+                continue
+
+            # 提取 bullet points
+            if in_experience and (line.startswith('-') or line.startswith('•') or line.startswith('*')):
+                bullet = line.lstrip('-•* ').strip()
+                if len(bullet) > 10:
+                    bullets.append(bullet)
+
+        return bullets

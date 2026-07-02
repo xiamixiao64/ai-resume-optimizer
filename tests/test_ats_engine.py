@@ -80,3 +80,33 @@ Requirements: Python, JavaScript, React, AWS, Docker
     assert 40 <= result["score"] <= 80
     assert len(result["missing"]) >= 2
     assert "react" in result["missing"]
+
+def test_experience_strong():
+    engine = ATSEngine()
+    resume = """
+EXPERIENCE
+Senior Software Engineer | Meta | 2021-2024
+- Led development of React-based dashboard serving 10M users
+- Increased API performance by 45% through optimization
+- Managed team of 5 engineers across 3 projects
+
+Software Engineer | Startup | 2019-2021
+- Built microservices architecture handling 1M requests/day
+- Reduced infrastructure costs by 30% using AWS
+"""
+    result = engine.check_experience(resume)
+    assert result["score"] >= 80
+    assert len(result["issues"]) == 0
+
+def test_experience_weak():
+    engine = ATSEngine()
+    resume = """
+EXPERIENCE
+Worked at company
+- Did stuff
+- Helped with things
+- Was responsible for things
+"""
+    result = engine.check_experience(resume)
+    assert result["score"] < 60
+    assert len(result["issues"]) >= 2
