@@ -48,7 +48,7 @@ LEMONSQUEEZY_STORE_ID = os.environ.get('LEMONSQUEEZY_STORE_ID', '')
 LEMONSQUEEZY_VARIANT_ID = os.environ.get('LEMONSQUEEZY_VARIANT_ID', '')
 
 # Free tier limits
-FREE_OPTIMIZATIONS = 5
+FREE_OPTIMIZATIONS = 3
 
 def hash_password(password):
     """Hash password with bcrypt"""
