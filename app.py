@@ -48,7 +48,7 @@ LEMONSQUEEZY_STORE_ID = os.environ.get('LEMONSQUEEZY_STORE_ID', '')
 LEMONSQUEEZY_VARIANT_ID = os.environ.get('LEMONSQUEEZY_VARIANT_ID', '')
 
 # Free tier limits
-FREE_OPTIMIZATIONS = 3
+FREE_OPTIMIZATIONS = 5
 
 def hash_password(password):
     """Hash password with bcrypt"""
@@ -511,25 +511,143 @@ def optimize():
     jd = job_description or "N/A"
     
     if mode == 'ats':
-        prompt = "Analyze this resume for ATS compatibility. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"ats_score\": 0-100, \"keyword_match\": [...], \"missing_keywords\": [...], \"improvements\": [...], \"optimized_resume\": \"...\"}"
+        prompt = """你是资深ATS优化专家。分析这份简历的ATS兼容性。
+
+RESUME:
+""" + resume_text + """
+
+JOB DESCRIPTION:
+""" + jd + """
+
+返回严格JSON格式：
+{
+  "ats_score": 0-100,
+  "score_breakdown": {
+    "keyword_match": 0-100,
+    "formatting": 0-100,
+    "experience_quality": 0-100,
+    "education_relevance": 0-100
+  },
+  "keyword_match": ["从JD匹配到的关键词"],
+  "missing_keywords": ["JD中需要但简历缺少的关键词"],
+  "bullet_analysis": [
+    {"original": "原始bullet", "issue": "问题说明", "suggestion": "改进建议"}
+  ],
+  "improvements": ["具体改进建议，针对这份简历"],
+  "optimized_resume": "完整优化后的简历文本"
+}
+
+规则：
+1. 逐条分析每个bullet point
+2. 检查是否有量化数据（数字、百分比、金额）
+3. 检查动词是否有力（用managed代替helped）
+4. 检查是否匹配JD关键词
+5. 不要编造数据，不要改变公司名称"""
+        system_msg = "你是ATS优化专家。返回严格JSON，无markdown，无解释。"
 
     elif mode == 'keywords':
-        prompt = "Extract keywords for this resume. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"ats_score\": 0-100, \"keyword_match\": [...], \"missing_keywords\": [...], \"improvements\": [...], \"optimized_resume\": \"...\"}"
+        prompt = """分析这份简历与目标职位的关键词匹配度。
+
+RESUME:
+""" + resume_text + """
+
+JOB DESCRIPTION:
+""" + jd + """
+
+返回严格JSON：
+{
+  "ats_score": 0-100,
+  "keyword_match": ["匹配的关键词"],
+  "missing_keywords": ["缺失的关键词"],
+  "keyword_suggestions": [
+    {"keyword": "关键词", "importance": "high/medium/low", "where_to_add": "建议添加位置"}
+  ],
+  "improvements": ["改进建议"],
+  "optimized_resume": "优化后的简历"
+}
+
+规则：
+1. 从JD提取所有关键技能和要求
+2. 逐个检查是否在简历中出现
+3. 给出添加建议
+4. 不要编造内容"""
+        system_msg = "你是关键词分析专家。返回严格JSON。"
 
     elif mode == 'cover_letter':
-        prompt = "Generate a cover letter. Return ONLY valid JSON.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + jd + "\n\nReturn JSON: {\"cover_letter\": \"...\", \"ats_score\": 0-100, \"key_matches\": [...]}"
+        prompt = """基于这份简历和目标职位，生成一封专业的求职信。
+
+RESUME:
+""" + resume_text + """
+
+JOB DESCRIPTION:
+""" + jd + """
+
+返回严格JSON：
+{
+  "cover_letter": "完整求职信（3-4段，专业语气，针对具体职位）",
+  "ats_score": 0-100,
+  "key_matches": ["简历与职位匹配的关键技能"],
+  "personalization_points": ["针对该公司的个性化内容"]
+}
+
+规则：
+1. 求职信要针对具体公司和职位
+2. 强调最相关的2-3个经验
+3. 展示对公司的了解
+4. 专业但不生硬"""
+        system_msg = "你是职业顾问。返回严格JSON。"
 
     else:
-        prompt = "Optimize this resume. Return ONLY valid JSON with this structure:\n"
-        prompt += "{\"ats_score\": 0-100, \"name\": \"...\", \"contact\": \"...\", \"summary\": \"2 sentences\", "
-        prompt += "\"experience\": [{\"title\": \"...\", \"company\": \"KEEP ORIGINAL\", \"location\": \"...\", \"dates\": \"...\", \"bullets\": [\"...\"]}], "
-        prompt += "\"education\": [{\"degree\": \"...\", \"school\": \"...\", \"year\": \"...\"}], "
-        prompt += "\"skills\": [...], \"improvements\": [\"specific to THIS resume\"], "
-        prompt += "\"keyword_match\": [\"exact from JD\"], \"missing_keywords\": [\"exact from JD not in resume\"]}\n\n"
-        prompt += "RULES: Keep original structure. Improve bullets with action verbs and realistic metrics (12%, 18%, 37%, not 20%, 25%, 30%). Add JD keywords. Keep company names.\n\n"
-        prompt += "RESUME:\n" + resume_text + "\n\nTARGET JOB:\n" + jd
+        prompt = """你是资深ATS优化专家和职业顾问。分析并优化这份简历。
 
-    system_msg = "Return ONLY valid JSON. No markdown, no explanations."
+RESUME:
+""" + resume_text + """
+
+TARGET JOB:
+""" + jd + """
+
+返回严格JSON格式：
+{
+  "ats_score": 0-100,
+  "score_breakdown": {
+    "keyword_match": 0-100,
+    "formatting": 0-100,
+    "experience_quality": 0-100,
+    "education_relevance": 0-100
+  },
+  "name": "姓名",
+  "contact": "联系方式",
+  "summary": "优化后的专业摘要（2-3句话）",
+  "experience": [
+    {
+      "title": "职位",
+      "company": "公司名（保持原样）",
+      "location": "地点",
+      "dates": "时间",
+      "bullets": ["优化后的bullet point"],
+      "bullet_analysis": [
+        {"original": "原始内容", "optimized": "优化后", "change": "改了什么", "reason": "为什么改"}
+      ]
+    }
+  ],
+  "education": [{"degree": "...", "school": "...", "year": "..."}],
+  "skills": ["技能1", "技能2"],
+  "improvements": ["针对这份简历的具体改进建议"],
+  "keyword_match": ["从JD匹配到的关键词"],
+  "missing_keywords": ["JD中需要但简历缺少的关键词"]
+}
+
+严格规则：
+1. 保持原始结构和公司名称不变
+2. 每个bullet point必须有量化数据（数字、百分比、金额）
+3. 使用有力动词：Led, Built, Increased, Reduced, Delivered, Launched
+4. 不要编造数据——如果没有数据，建议用户添加
+5. 添加JD中的相关关键词
+6. bullet点以行动动词开头
+7. 每个bullet说明具体改了什么、为什么改"""
+        system_msg = "你是资深ATS优化专家。返回严格JSON，无markdown，无额外解释。"
+
+    system_msg = system_msg
 
     result = call_ai(prompt, system_msg)
 

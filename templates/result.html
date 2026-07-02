@@ -11,36 +11,74 @@
         .header h1 { font-size: 1.2rem; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .header a { color: #a855f7; text-decoration: none; font-weight: 600; }
         .container { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
-        .score-card { background: linear-gradient(135deg, #1a1030, #0a0a1a); border: 1px solid #333; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 24px; }
-        .score-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 2.5rem; font-weight: 800; }
+
+        /* Score Card */
+        .score-card { background: linear-gradient(135deg, #1a1030, #0a0a1a); border: 1px solid #333; border-radius: 16px; padding: 32px; margin-bottom: 24px; }
+        .score-top { display: flex; align-items: center; gap: 32px; }
+        .score-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .score-high { background: conic-gradient(#22c55e 0deg, #22c55e {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
         .score-mid { background: conic-gradient(#eab308 0deg, #eab308 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
         .score-low { background: conic-gradient(#ef4444 0deg, #ef4444 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
-        .score-inner { width: 100px; height: 100px; background: #0a0a0a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .score-inner { width: 100px; height: 100px; background: #0a0a1a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         .score-num { font-size: 2.2rem; font-weight: 800; }
         .score-label { font-size: 0.75rem; color: #666; }
-        .score-verdict { font-size: 1.1rem; font-weight: 600; margin-top: 8px; }
+        .score-details { flex: 1; }
+        .score-verdict { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+        .score-bars { display: grid; gap: 10px; }
+        .score-bar-item { display: flex; align-items: center; gap: 12px; }
+        .score-bar-label { width: 130px; font-size: 0.85rem; color: #888; }
+        .score-bar-bg { flex: 1; height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .score-bar-fill.high { background: #22c55e; }
+        .score-bar-fill.mid { background: #eab308; }
+        .score-bar-fill.low { background: #ef4444; }
+        .score-bar-val { width: 35px; text-align: right; font-size: 0.85rem; font-weight: 600; }
+
+        /* Sections */
         .section { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
         .section h2 { font-size: 1.15rem; margin-bottom: 16px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .section h3 { font-size: 1rem; margin: 16px 0 8px; color: #ccc; }
+
+        /* Tags */
         .tag { display: inline-block; background: #1a1a2e; color: #818cf8; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; margin: 3px; }
         .tag.missing { background: #2a1a1a; color: #f87171; }
-        .improvement { padding: 12px 0; border-bottom: 1px solid #222; }
+        .tag.match { background: #1a2e1a; color: #22c55e; }
+
+        /* Bullet Analysis */
+        .bullet-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+        .bullet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .bullet-company { font-weight: 600; color: #a855f7; font-size: 0.9rem; }
+        .bullet-change { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; }
+        .bullet-change.added { background: #1a2e1a; color: #22c55e; }
+        .bullet-change.improved { background: #1a1a30; color: #818cf8; }
+        .bullet-diff { display: grid; gap: 8px; }
+        .bullet-original { color: #888; font-size: 0.85rem; padding: 8px 12px; background: #0a0a0a; border-radius: 6px; border-left: 3px solid #ef4444; }
+        .bullet-optimized { color: #e0e0e0; font-size: 0.85rem; padding: 8px 12px; background: #0a0a1a; border-radius: 6px; border-left: 3px solid #22c55e; }
+        .bullet-reason { font-size: 0.8rem; color: #a855f7; margin-top: 6px; font-style: italic; }
+
+        /* Improvements */
+        .improvement { padding: 12px 0; border-bottom: 1px solid #222; display: flex; gap: 10px; }
         .improvement:last-child { border-bottom: none; }
-        .improvement .num { color: #a855f7; font-weight: 700; margin-right: 8px; }
+        .improvement .num { color: #a855f7; font-weight: 700; min-width: 24px; }
+
+        /* Resume Output */
         .resume-output { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 20px; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.7; max-height: 600px; overflow-y: auto; }
+
+        /* Buttons */
         .btn-group { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
         .copy-btn, .export-btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.9rem; }
         .copy-btn { background: #6366f1; color: #fff; }
         .copy-btn:hover { background: #5558e6; }
         .export-btn { background: #22c55e; color: #fff; }
         .export-btn:hover { background: #16a34a; }
-        .proof { text-align: center; padding: 20px; color: #555; font-size: 0.8rem; }
+
+        /* CTA */
         .cta-card { background: linear-gradient(135deg, #1a1030, #111); border: 1px solid #6366f1; border-radius: 12px; padding: 32px; text-align: center; margin: 30px 0; }
         .cta-card h3 { font-size: 1.3rem; margin-bottom: 12px; color: #fff; }
-        .cta-card p { color: #888; margin-bottom: 20px; }
-        .cta-btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1.05rem; }
-        .cta-btn:hover { transform: translateY(-2px); }
-        @media (max-width: 640px) { .score-ring { width: 100px; height: 100px; } .score-inner { width: 82px; height: 82px; } .score-num { font-size: 1.8rem; } }
+        .cta-btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; }
+
+        .proof { text-align: center; padding: 20px; color: #555; font-size: 0.8rem; }
+        @media (max-width: 640px) { .score-top { flex-direction: column; text-align: center; } .score-bar-label { width: 100px; } }
     </style>
 </head>
 <body>
@@ -50,57 +88,113 @@
     </div>
 
     <div class="container">
+        {% set score = data.ats_score|default(65) %}
+        {% if score >= 80 %}{% set sc = 'score-high' %}{% set verdict = 'Excellent! Your resume is well-optimized' %}
+        {% elif score >= 60 %}{% set sc = 'score-mid' %}{% set verdict = 'Good start, but room for improvement' %}
+        {% else %}{% set sc = 'score-low' %}{% set verdict = 'Needs work - follow the suggestions below' %}{% endif %}
+
+        <!-- Score Card with Breakdown -->
         <div class="score-card">
-            {% set score = data.ats_score|default(65) %}
-            {% if score >= 80 %}{% set sc = 'score-high' %}{% set verdict = 'Excellent! Your resume is well-optimized' %}
-            {% elif score >= 60 %}{% set sc = 'score-mid' %}{% set verdict = 'Good start, but room for improvement' %}
-            {% else %}{% set sc = 'score-low' %}{% set verdict = 'Needs work - follow the suggestions below' %}{% endif %}
-            <div class="score-ring {{ sc }}">
-                <div class="score-inner">
-                    <div class="score-num">{{ score }}</div>
-                    <div class="score-label">ATS Score</div>
+            <div class="score-top">
+                <div class="score-ring {{ sc }}">
+                    <div class="score-inner">
+                        <div class="score-num">{{ score }}</div>
+                        <div class="score-label">ATS Score</div>
+                    </div>
+                </div>
+                <div class="score-details">
+                    <div class="score-verdict">{{ verdict }}</div>
+                    {% if data.score_breakdown is defined and data.score_breakdown %}
+                    <div class="score-bars">
+                        {% for key, val in data.score_breakdown.items() %}
+                        <div class="score-bar-item">
+                            <span class="score-bar-label">{{ key.replace('_', ' ').title() }}</span>
+                            <div class="score-bar-bg">
+                                <div class="score-bar-fill {% if val >= 80 %}high{% elif val >= 60 %}mid{% else %}low{% endif %}" style="width: {{ val }}%"></div>
+                            </div>
+                            <span class="score-bar-val">{{ val }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            <div class="score-verdict">{{ verdict }}</div>
         </div>
 
+        <!-- Matched Keywords -->
         {% if data.keyword_match is defined and data.keyword_match %}
         <div class="section">
-            <h2>✅ Matched Keywords</h2>
+            <h2>Matched Keywords</h2>
             {% for kw in data.keyword_match %}
-            <span class="tag">{{ kw }}</span>
+            <span class="tag match">{{ kw }}</span>
             {% endfor %}
         </div>
         {% endif %}
 
+        <!-- Missing Keywords -->
         {% if data.missing_keywords is defined and data.missing_keywords %}
         <div class="section">
-            <h2>⚠️ Missing Keywords</h2>
+            <h2>Missing Keywords</h2>
+            <p style="color:#888;font-size:0.85rem;margin-bottom:12px">Add these to your resume to improve ATS compatibility:</p>
             {% for kw in data.missing_keywords %}
             <span class="tag missing">{{ kw }}</span>
             {% endfor %}
         </div>
         {% endif %}
 
+        <!-- Bullet Point Analysis (if available) -->
+        {% if data.experience is defined and data.experience %}
+        {% for exp in data.experience %}
+            {% if exp.bullet_analysis is defined and exp.bullet_analysis %}
+        <div class="section">
+            <h2>Bullet Point Analysis</h2>
+            <div class="bullet-header">
+                <span class="bullet-company">{{ exp.title|default('') }} at {{ exp.company|default('') }}</span>
+            </div>
+            {% for b in exp.bullet_analysis %}
+            <div class="bullet-card">
+                <div class="bullet-diff">
+                    <div class="bullet-original">
+                        <strong style="color:#ef4444">BEFORE:</strong> {{ b.original|default('') }}
+                    </div>
+                    <div class="bullet-optimized">
+                        <strong style="color:#22c55e">AFTER:</strong> {{ b.optimized|default(b.suggestion|default('')) }}
+                    </div>
+                </div>
+                {% if b.change is defined and b.change %}
+                <div class="bullet-reason">{{ b.change }}{% if b.reason is defined and b.reason %} — {{ b.reason }}{% endif %}</div>
+                {% elif b.reason is defined and b.reason %}
+                <div class="bullet-reason">{{ b.reason }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <!-- Improvements -->
         {% if data.improvements is defined and data.improvements %}
         <div class="section">
-            <h2>💡 Improvements Made</h2>
+            <h2>Improvements</h2>
             {% for imp in data.improvements %}
             <div class="improvement">
-                <span class="num">{{ loop.index }}.</span>{{ imp }}
+                <span class="num">{{ loop.index }}.</span>
+                <span>{{ imp }}</span>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
+        <!-- Optimized Resume -->
         <div class="section">
-            <h2>📄 Optimized Resume</h2>
+            <h2>Optimized Resume</h2>
             <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|default('Optimization completed. Review the changes above.') }}</div>
             <div class="btn-group">
-                <button class="copy-btn" onclick="copyResume()">📋 Copy to Clipboard</button>
+                <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
                 <form action="/export/pdf" method="POST" style="display:inline">
                     <input type="hidden" name="resume_content" id="resumeContent" value="{{ data.optimized_resume }}">
-                    <button type="submit" class="export-btn">📥 Download PDF</button>
+                    <button type="submit" class="export-btn">Download PDF</button>
                 </form>
             </div>
         </div>
@@ -108,7 +202,7 @@
         <div class="cta-card">
             <h3>Want to optimize another resume?</h3>
             <p>Get unlimited optimizations with ResumeForge Pro</p>
-            <a href="/" class="cta-btn">Try Again - Free</a>
+            <a href="/" class="cta-btn">Try Again</a>
         </div>
 
         <div class="proof">
@@ -122,7 +216,7 @@
             navigator.clipboard.writeText(text).then(() => {
                 const btn = document.querySelector('.copy-btn');
                 btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+                setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
             });
         }
     </script>
