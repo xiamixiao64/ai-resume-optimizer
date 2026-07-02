@@ -225,3 +225,68 @@ class ATSEngine:
                     bullets.append(bullet)
 
         return bullets
+
+    def check_education(self, resume_text):
+        """检查教育背景"""
+        score = 100
+        issues = []
+
+        resume_lower = resume_text.lower()
+
+        # 检查是否有教育章节
+        if "education" not in resume_lower:
+            return {"score": 50, "issues": ["缺少教育背景章节"]}
+
+        # 检查学位
+        degrees = ["bs", "ba", "b.s", "b.a", "ms", "ma", "m.s", "m.a", "mba", "phd", "bachelor", "master"]
+        has_degree = any(d in resume_lower for d in degrees)
+        if not has_degree:
+            score -= 30
+            issues.append("未找到学位信息")
+
+        # 检查学校
+        if "university" not in resume_lower and "college" not in resume_lower and "institute" not in resume_lower:
+            score -= 20
+            issues.append("未找到学校名称")
+
+        # 检查年份
+        if not re.search(r'20\d{2}', resume_text):
+            score -= 10
+            issues.append("未找到毕业年份")
+
+        return {"score": max(0, score), "issues": issues}
+
+    def check_contact(self, resume_text):
+        """检查联系方式"""
+        score = 0
+        issues = []
+
+        # 电子邮件 (25分)
+        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        if re.search(email_pattern, resume_text):
+            score += 25
+        else:
+            issues.append("缺少有效的电子邮件地址")
+
+        # 电话 (25分)
+        phone_pattern = r'(\+?1?[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+        if re.search(phone_pattern, resume_text):
+            score += 25
+        else:
+            issues.append("缺少有效的电话号码")
+
+        # LinkedIn (25分)
+        if "linkedin" in resume_text.lower():
+            score += 25
+        else:
+            issues.append("建议添加 LinkedIn 个人主页链接")
+
+        # 地点 (25分)
+        locations = ["san francisco", "new york", "seattle", "austin", "boston", "chicago",
+                     "los angeles", "denver", "atlanta", "miami", "remote"]
+        if any(loc in resume_text.lower() for loc in locations):
+            score += 25
+        else:
+            issues.append("建议添加所在城市")
+
+        return {"score": score, "issues": issues}

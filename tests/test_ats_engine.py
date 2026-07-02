@@ -110,3 +110,64 @@ Worked at company
     result = engine.check_experience(resume)
     assert result["score"] < 60
     assert len(result["issues"]) >= 2
+
+# ---- Education Tests ----
+
+def test_education_complete():
+    engine = ATSEngine()
+    resume = """
+EDUCATION
+BS Computer Science | Stanford University | 2020
+GPA: 3.8/4.0
+"""
+    result = engine.check_education(resume)
+    assert result["score"] >= 80
+
+def test_education_missing_degree():
+    engine = ATSEngine()
+    resume = """
+EDUCATION
+Stanford University | 2020
+"""
+    result = engine.check_education(resume)
+    assert result["score"] < 80
+    assert any("学位" in i for i in result["issues"])
+
+def test_education_no_section():
+    engine = ATSEngine()
+    resume = """
+John Doe
+Software Engineer
+"""
+    result = engine.check_education(resume)
+    assert result["score"] == 50
+
+# ---- Contact Tests ----
+
+def test_contact_complete():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com | (555) 123-4567 | San Francisco, CA
+LinkedIn: linkedin.com/in/johndoe | GitHub: github.com/johndoe
+"""
+    result = engine.check_contact(resume)
+    assert result["score"] >= 90
+
+def test_contact_incomplete():
+    engine = ATSEngine()
+    resume = """
+John Doe
+"""
+    result = engine.check_contact(resume)
+    assert result["score"] < 50
+
+def test_contact_partial():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com | (555) 123-4567
+"""
+    result = engine.check_contact(resume)
+    assert 50 <= result["score"] <= 75
+    assert len(result["issues"]) >= 1
