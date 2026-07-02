@@ -187,6 +187,34 @@ def test_identify_lever():
     result = engine.identify_ats(jd)
     assert result["type"] == "lever"
 
+def test_identify_greenhouse():
+    engine = ATSEngine()
+    jd = "Apply at https://boards.greenhouse.io/company"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "greenhouse"
+    assert result["confidence"] > 0.7
+
+def test_identify_icims():
+    engine = ATSEngine()
+    jd = "Apply at https://jobs.icims.com/company"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "icims"
+    assert result["confidence"] > 0.7
+
+def test_identify_taleo():
+    engine = ATSEngine()
+    jd = "Apply at https://oracle.com/taleo/company"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "taleo"
+    assert result["confidence"] > 0.7
+
+def test_identify_smartrecruiters():
+    engine = ATSEngine()
+    jd = "Apply at https://smartrecruiters.com/company"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "smartrecruiters"
+    assert result["confidence"] > 0.7
+
 def test_identify_unknown():
     engine = ATSEngine()
     jd = "Please send your resume to hr@company.com"
