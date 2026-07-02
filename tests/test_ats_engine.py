@@ -19,3 +19,39 @@ def test_analyze_returns_dict():
     assert "ats_score" in result
     assert "breakdown" in result
     assert "improvements" in result
+
+def test_formatting_check_ideal():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com | (555) 123-4567 | LinkedIn: linkedin.com/in/johndoe
+
+EXPERIENCE
+Software Engineer | Google | 2020-2023
+- Led development of microservices architecture
+- Increased system performance by 40%
+
+EDUCATION
+BS Computer Science | Stanford University | 2020
+
+SKILLS
+Python, JavaScript, React, AWS, Docker
+"""
+    result = engine.check_formatting(resume)
+    assert result["score"] >= 80
+    assert len(result["issues"]) == 0
+
+def test_formatting_check_issues():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com
+
+EXPERIENCE
+- Did stuff
+- Helped with things
+- Was responsible for stuff
+"""
+    result = engine.check_formatting(resume)
+    assert result["score"] < 80
+    assert len(result["issues"]) > 0
