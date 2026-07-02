@@ -55,3 +55,28 @@ EXPERIENCE
     result = engine.check_formatting(resume)
     assert result["score"] < 80
     assert len(result["issues"]) > 0
+
+def test_keywords_perfect_match():
+    engine = ATSEngine()
+    resume = """
+Skills: Python, JavaScript, React, AWS, Docker, Git
+"""
+    jd = """
+Requirements: Python, JavaScript, React, AWS, Docker, Git
+"""
+    result = engine.check_keywords(resume, jd)
+    assert result["score"] >= 90
+    assert len(result["missing"]) == 0
+
+def test_keywords_partial_match():
+    engine = ATSEngine()
+    resume = """
+Skills: Python, JavaScript
+"""
+    jd = """
+Requirements: Python, JavaScript, React, AWS, Docker
+"""
+    result = engine.check_keywords(resume, jd)
+    assert 40 <= result["score"] <= 80
+    assert len(result["missing"]) >= 2
+    assert "react" in result["missing"]
