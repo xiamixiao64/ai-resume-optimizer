@@ -220,3 +220,81 @@ def test_identify_unknown():
     jd = "Please send your resume to hr@company.com"
     result = engine.identify_ats(jd)
     assert result["type"] == "unknown"
+
+# ---- Full Analysis Tests ----
+
+def test_full_analysis():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com | (555) 123-4567 | LinkedIn: linkedin.com/in/johndoe
+
+EXPERIENCE
+Senior Software Engineer | Google | 2021-2024
+- Led development of microservices architecture serving 10M users
+- Increased API performance by 45% through optimization
+- Managed team of 5 engineers across 3 projects
+
+EDUCATION
+BS Computer Science | Stanford University | 2020
+
+SKILLS
+Python, JavaScript, React, AWS, Docker, Git
+"""
+    jd = """
+Requirements: Python, JavaScript, React, AWS, Docker
+"""
+    result = engine.analyze(resume, jd)
+
+    assert "ats_score" in result
+    assert 0 <= result["ats_score"] <= 100
+    assert "breakdown" in result
+    assert "formatting" in result["breakdown"]
+    assert "keywords" in result["breakdown"]
+    assert "experience" in result["breakdown"]
+    assert "education" in result["breakdown"]
+    assert "contact" in result["breakdown"]
+    assert "improvements" in result
+    assert isinstance(result["improvements"], list)
+    assert "ats_type" in result
+
+def test_full_analysis_score_is_weighted():
+    engine = ATSEngine()
+    resume = """
+John Doe
+john@email.com | (555) 123-4567 | San Francisco, CA
+LinkedIn: linkedin.com/in/johndoe
+
+EXPERIENCE
+Software Engineer | Tech Corp | 2020-2023
+- Built REST APIs serving 1M daily requests
+- Reduced response time by 60%
+- Led team of 4 engineers
+
+EDUCATION
+BS Computer Science | MIT | 2020
+
+SKILLS
+Python, JavaScript, React, AWS, Docker, Git
+"""
+    jd = "Requirements: Python, JavaScript, React, AWS"
+    result = engine.analyze(resume, jd)
+
+    breakdown = result["breakdown"]
+    total_from_breakdown = (
+        breakdown["formatting"]["score"] * engine.weights["formatting"] / 100 +
+        breakdown["keywords"]["score"] * engine.weights["keywords"] / 100 +
+        breakdown["experience"]["score"] * engine.weights["experience"] / 100 +
+        breakdown["education"]["score"] * engine.weights["education"] / 100 +
+        breakdown["contact"]["score"] * engine.weights["contact"] / 100
+    )
+    assert result["ats_score"] == round(total_from_breakdown)
+
+def test_full_analysis_improvements_prioritized():
+    engine = ATSEngine()
+    resume = "Just some random text without proper format"
+    jd = "Requirements: Python, JavaScript, React"
+    result = engine.analyze(resume, jd)
+
+    assert len(result["improvements"]) > 0
+    assert len(result["improvements"]) <= 6

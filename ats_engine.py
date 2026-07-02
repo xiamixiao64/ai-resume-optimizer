@@ -65,19 +65,66 @@ class ATSEngine:
     
     def analyze(self, resume_text, jd_text):
         """分析简历的 ATS 兼容性"""
-        # 基础实现，返回占位结果
+        # 执行所有检查
+        formatting = self.check_formatting(resume_text)
+        keywords = self.check_keywords(resume_text, jd_text)
+        experience = self.check_experience(resume_text)
+        education = self.check_education(resume_text)
+        contact = self.check_contact(resume_text)
+        ats_type = self.identify_ats(jd_text)
+
+        # 计算加权总分
+        total_score = (
+            formatting["score"] * self.weights["formatting"] / 100 +
+            keywords["score"] * self.weights["keywords"] / 100 +
+            experience["score"] * self.weights["experience"] / 100 +
+            education["score"] * self.weights["education"] / 100 +
+            contact["score"] * self.weights["contact"] / 100
+        )
+
+        # 生成改进建议
+        improvements = self._generate_improvements(
+            formatting, keywords, experience, education, contact, ats_type
+        )
+
         return {
-            "ats_score": 0,
+            "ats_score": round(total_score),
             "breakdown": {
-                "formatting": {"score": 0, "issues": []},
-                "keywords": {"score": 0, "issues": []},
-                "experience": {"score": 0, "issues": []},
-                "education": {"score": 0, "issues": []},
-                "contact": {"score": 0, "issues": []}
+                "formatting": formatting,
+                "keywords": keywords,
+                "experience": experience,
+                "education": education,
+                "contact": contact
             },
-            "improvements": [],
-            "ats_type": None
+            "improvements": improvements,
+            "ats_type": ats_type
         }
+
+    def _generate_improvements(self, formatting, keywords, experience, education, contact, ats_type):
+        """生成改进建议"""
+        improvements = []
+
+        # 按优先级添加建议
+        if keywords["missing"]:
+            improvements.append(f"添加缺失的关键词: {', '.join(keywords['missing'][:5])}")
+
+        if formatting["issues"]:
+            improvements.extend(formatting["issues"][:2])
+
+        if experience["issues"]:
+            improvements.extend(experience["issues"][:2])
+
+        if education["issues"]:
+            improvements.extend(education["issues"][:1])
+
+        if contact["issues"]:
+            improvements.extend(contact["issues"][:1])
+
+        # 添加 ATS 特定建议
+        if ats_type["tips"]:
+            improvements.append(f"针对 {ats_type['type']} 系统: {ats_type['tips'][0]}")
+
+        return improvements[:6]  # 最多返回 6 条建议
 
     def check_formatting(self, resume_text):
         """检查简历格式兼容性"""
