@@ -298,3 +298,51 @@ def test_full_analysis_improvements_prioritized():
 
     assert len(result["improvements"]) > 0
     assert len(result["improvements"]) <= 6
+
+# ---- Edge Cases ----
+
+def test_empty_resume():
+    engine = ATSEngine()
+    result = engine.analyze("", "Job description")
+    assert result["ats_score"] < 50
+    assert len(result["improvements"]) > 0
+
+def test_empty_jd():
+    engine = ATSEngine()
+    result = engine.analyze("John Doe\njohn@email.com\nEXPERIENCE\n- Built stuff", "")
+    assert result["ats_score"] >= 50
+
+def test_long_resume():
+    engine = ATSEngine()
+    resume = "EXPERIENCE\n" + "\n".join(["- " + "word " * 25 for _ in range(60)])
+    result = engine.analyze(resume, "Python developer")
+    assert any("过长" in i for i in result["breakdown"]["formatting"]["issues"])
+
+def test_only_contact():
+    engine = ATSEngine()
+    resume = "john@email.com | (555) 123-4567 | LinkedIn: linkedin.com/in/john"
+    result = engine.analyze(resume, "Python developer")
+    assert result["breakdown"]["contact"]["score"] >= 75
+
+def test_chinese_resume():
+    from tests.test_data import STRONG_RESUME_CN
+    engine = ATSEngine()
+    result = engine.analyze(STRONG_RESUME_CN, "Python developer")
+    assert 0 <= result["ats_score"] <= 100
+    assert "breakdown" in result
+
+# ---- Performance Tests ----
+
+import time
+
+def test_performance():
+    from tests.test_data import STRONG_RESUME, JD_WITH_ATS
+    engine = ATSEngine()
+
+    start = time.time()
+    for _ in range(100):
+        engine.analyze(STRONG_RESUME, JD_WITH_ATS)
+    end = time.time()
+
+    avg_time = (end - start) / 100
+    assert avg_time < 0.1  # <100ms per analysis

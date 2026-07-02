@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeForge AI - Resume Templates</title>
+    <meta name="description" content="Choose from professional resume templates. Modern, creative, minimal designs optimized for ATS systems.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: #111; border-bottom: 1px solid #222; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.2rem; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header a { color: #a855f7; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px 60px; }
+        .hero { text-align: center; padding: 40px 0 30px; }
+        .hero h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; color: #fff; }
+        .hero p { color: #888; max-width: 500px; margin: 0 auto; }
+        .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .template-card { background: #111; border: 2px solid #222; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+        .template-card:hover { border-color: #6366f1; transform: translateY(-4px); }
+        .template-card.selected { border-color: #a855f7; }
+        .template-preview { height: 200px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .preview-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+        .preview-line { height: 6px; border-radius: 3px; }
+        .preview-line.short { width: 40%; }
+        .preview-line.medium { width: 70%; }
+        .preview-line.long { width: 90%; }
+        .template-info { padding: 16px 20px; border-top: 1px solid #222; }
+        .template-title { font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .template-desc { font-size: 0.85rem; color: #888; }
+        .template-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .template-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: #818cf8; }
+        .cta { text-align: center; margin-top: 40px; }
+        .cta a { color: #a855f7; text-decoration: none; font-weight: 600; }
+
+        /* Template styles */
+        .tpl-modern .preview-name { color: #6366f1; }
+        .tpl-modern .preview-line { background: linear-gradient(90deg, #6366f1, #a855f7); }
+        .tpl-modern .preview-header { background: #6366f1; height: 40px; border-radius: 6px; margin-bottom: 8px; }
+
+        .tpl-professional .preview-name { color: #1e3a5f; }
+        .tpl-professional .preview-line { background: #1e3a5f; }
+        .tpl-professional .preview-header { background: #1e3a5f; height: 40px; border-radius: 6px; margin-bottom: 8px; }
+
+        .tpl-creative .preview-name { color: #ec4899; }
+        .tpl-creative .preview-line { background: linear-gradient(90deg, #ec4899, #f97316); }
+        .tpl-creative .preview-header { background: linear-gradient(135deg, #ec4899, #f97316); height: 40px; border-radius: 6px; margin-bottom: 8px; }
+
+        .tpl-minimal .preview-name { color: #e0e0e0; }
+        .tpl-minimal .preview-line { background: #555; }
+        .tpl-minimal .preview-header { background: #333; height: 40px; border-radius: 6px; margin-bottom: 8px; }
+
+        .tpl-executive .preview-name { color: #b8860b; }
+        .tpl-executive .preview-line { background: #b8860b; }
+        .tpl-executive .preview-header { background: #1a1a1a; border: 2px solid #b8860b; height: 40px; border-radius: 6px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ResumeForge AI</h1>
+        <a href="/">Back to Optimizer</a>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Resume Templates</h2>
+            <p>Choose a template style. Your content stays the same, only the layout changes.</p>
+        </div>
+
+        <div class="templates-grid">
+            <div class="template-card tpl-modern" onclick="selectTemplate('modern', this)">
+                <div class="template-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-name">John Doe</div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                    <div class="preview-line short"></div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-title">Modern</div>
+                    <div class="template-desc">Clean, gradient accents. Perfect for tech companies and startups.</div>
+                    <div class="template-tags"><span class="template-tag">Tech</span><span class="template-tag">Startup</span><span class="template-tag">Creative</span></div>
+                </div>
+            </div>
+
+            <div class="template-card tpl-professional" onclick="selectTemplate('professional', this)">
+                <div class="template-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-name">John Doe</div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                    <div class="preview-line short"></div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-title">Professional</div>
+                    <div class="template-desc">Classic navy blue. Ideal for corporate and finance roles.</div>
+                    <div class="template-tags"><span class="template-tag">Corporate</span><span class="template-tag">Finance</span><span class="template-tag">Legal</span></div>
+                </div>
+            </div>
+
+            <div class="template-card tpl-creative" onclick="selectTemplate('creative', this)">
+                <div class="template-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-name">John Doe</div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                    <div class="preview-line short"></div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-title">Creative</div>
+                    <div class="template-desc">Bold pink-orange gradient. Great for design and marketing.</div>
+                    <div class="template-tags"><span class="template-tag">Design</span><span class="template-tag">Marketing</span><span class="template-tag">Media</span></div>
+                </div>
+            </div>
+
+            <div class="template-card tpl-minimal" onclick="selectTemplate('minimal', this)">
+                <div class="template-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-name">John Doe</div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                    <div class="preview-line short"></div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-title">Minimal</div>
+                    <div class="template-desc">Ultra-clean monochrome. Best for academic and research positions.</div>
+                    <div class="template-tags"><span class="template-tag">Academic</span><span class="template-tag">Research</span><span class="template-tag">Engineering</span></div>
+                </div>
+            </div>
+
+            <div class="template-card tpl-executive" onclick="selectTemplate('executive', this)">
+                <div class="template-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-name">John Doe</div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                    <div class="preview-line short"></div>
+                    <div class="preview-line long"></div>
+                    <div class="preview-line medium"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-title">Executive</div>
+                    <div class="template-desc">Gold accents on dark. For C-level and senior management roles.</div>
+                    <div class="template-tags"><span class="template-tag">Executive</span><span class="template-tag">Management</span><span class="template-tag">Leadership</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta">
+            <a href="/">&#x2190; Back to Resume Optimizer</a>
+        </div>
+    </div>
+
+    <script>
+        function selectTemplate(name, el) {
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            localStorage.setItem('selected_template', name);
+            // Redirect to optimizer with template pre-selected
+            window.location.href = '/?template=' + name;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeForge AI - Batch Optimization</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: #111; border-bottom: 1px solid #222; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.2rem; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header a { color: #a855f7; text-decoration: none; font-weight: 600; }
+        .container { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+        .hero { text-align: center; padding: 40px 0 30px; }
+        .hero h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; color: #fff; }
+        .hero p { color: #888; max-width: 500px; margin: 0 auto; }
+        .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        textarea { width: 100%; min-height: 120px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; color: #e0e0e0; font-family: inherit; font-size: 0.95rem; resize: vertical; }
+        textarea:focus { outline: none; border-color: #6366f1; }
+        textarea::placeholder { color: #555; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #ccc; }
+        .upload-zone { border: 2px dashed #333; border-radius: 10px; padding: 40px; text-align: center; margin-bottom: 16px; cursor: pointer; transition: border-color 0.2s; }
+        .upload-zone:hover { border-color: #6366f1; }
+        .upload-zone p { color: #888; margin-bottom: 12px; }
+        .upload-btn { background: #222; color: #a855f7; border: 1px solid #6366f1; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .file-list { margin-top: 12px; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #1a1a1a; border-radius: 6px; margin-bottom: 6px; font-size: 0.85rem; }
+        .file-item .name { color: #ccc; }
+        .file-item .remove { color: #f87171; cursor: pointer; }
+        .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 10px; color: #fff; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s; margin-top: 16px; }
+        .submit-btn:hover { transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .loading { display: none; text-align: center; padding: 40px; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 24px; }
+        .result-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
+        .result-card:hover { border-color: #6366f1; }
+        .result-score { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+        .result-score.high { color: #22c55e; }
+        .result-score.mid { color: #eab308; }
+        .result-score.low { color: #f87171; }
+        .result-name { font-weight: 600; color: #fff; margin-bottom: 8px; }
+        .result-improvements { font-size: 0.85rem; color: #888; }
+        .cta { text-align: center; margin-top: 40px; }
+        .cta a { color: #a855f7; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ResumeForge AI</h1>
+        <a href="/">Back to Optimizer</a>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Batch Optimization</h2>
+            <p>Upload multiple resumes and optimize them all against one job description</p>
+        </div>
+
+        <div class="card">
+            <form id="batchForm" onsubmit="batchOptimize(event)">
+                <label>Job Description *</label>
+                <textarea id="jobDesc" placeholder="Paste the job description here. All resumes will be optimized for this role." required></textarea>
+                <br><br>
+
+                <label>Upload Resumes (PDF) *</label>
+                <div class="upload-zone" onclick="document.getElementById('files').click()">
+                    <p>Click to upload or drag PDF files here</p>
+                    <button type="button" class="upload-btn">Choose Files</button>
+                    <input type="file" id="files" accept=".pdf" multiple style="display:none" onchange="handleFiles(this)">
+                </div>
+                <div class="file-list" id="fileList"></div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Optimize All Resumes</button>
+            </form>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing resumes...</p>
+            </div>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="cta">
+            <a href="/">&#x2190; Back to Resume Optimizer</a>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        function handleFiles(input) {
+            selectedFiles = Array.from(input.files);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = selectedFiles.map((f, i) =>
+                '<div class="file-item"><span class="name">' + f.name + '</span><span class="remove" onclick="removeFile(' + i + ')">x</span></div>'
+            ).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        async function batchOptimize(e) {
+            e.preventDefault();
+            if (selectedFiles.length === 0) { alert('Please select at least one PDF file'); return; }
+
+            const btn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const form = document.getElementById('batchForm');
+            const results = document.getElementById('results');
+
+            btn.disabled = true;
+            loading.style.display = 'block';
+            form.style.display = 'none';
+            results.innerHTML = '';
+
+            const jobDesc = document.getElementById('jobDesc').value;
+            let resultCards = [];
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                document.getElementById('loadingText').textContent = 'Processing ' + (i+1) + '/' + selectedFiles.length + ': ' + selectedFiles[i].name;
+
+                try {
+                    // Upload PDF
+                    const uploadData = new FormData();
+                    uploadData.append('resume_file', selectedFiles[i]);
+                    const uploadResp = await fetch('/upload', { method: 'POST', body: uploadData });
+                    const uploadResult = await uploadResp.json();
+
+                    if (uploadResult.error) {
+                        resultCards.push({ name: selectedFiles[i].name, error: uploadResult.error });
+                        continue;
+                    }
+
+                    // Optimize
+                    const optData = new FormData();
+                    optData.append('resume_text', uploadResult.resume_text);
+                    optData.append('job_description', jobDesc);
+                    optData.append('mode', 'optimize');
+                    const optResp = await fetch('/optimize', { method: 'POST', body: optData });
+                    const html = await optResp.text();
+
+                    // Extract score from HTML
+                    const scoreMatch = html.match(/score-num[^>]*>(\d+)</);
+                    const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+
+                    resultCards.push({
+                        name: selectedFiles[i].name,
+                        score: score,
+                        html: html
+                    });
+                } catch (err) {
+                    resultCards.push({ name: selectedFiles[i].name, error: err.message });
+                }
+            }
+
+            // Render results
+            let html = '<div class="results-grid">';
+            resultCards.forEach(r => {
+                if (r.error) {
+                    html += '<div class="result-card"><div class="result-name">' + r.name + '</div><div style="color:#f87171">' + r.error + '</div></div>';
+                } else {
+                    const scoreClass = r.score >= 80 ? 'high' : r.score >= 60 ? 'mid' : 'low';
+                    html += '<div class="result-card" onclick="viewResult(this)" data-html="' + encodeURIComponent(r.html) + '">';
+                    html += '<div class="result-score ' + scoreClass + '">' + r.score + '</div>';
+                    html += '<div class="result-name">' + r.name + '</div>';
+                    html += '<div class="result-improvements">Click to view full results</div>';
+                    html += '</div>';
+                }
+            });
+            html += '</div>';
+            results.innerHTML = html;
+
+            btn.disabled = false;
+            loading.style.display = 'none';
+            form.style.display = 'block';
+        }
+
+        function viewResult(el) {
+            const html = decodeURIComponent(el.getAttribute('data-html'));
+            const w = window.open('', '_blank');
+            w.document.write(html);
+            w.document.close();
+        }
+    </script>
+</body>
+</html>

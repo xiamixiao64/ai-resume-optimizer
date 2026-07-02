@@ -15,12 +15,14 @@
         /* Score Card */
         .score-card { background: linear-gradient(135deg, #1a1030, #0a0a1a); border: 1px solid #333; border-radius: 16px; padding: 32px; margin-bottom: 24px; }
         .score-top { display: flex; align-items: center; gap: 32px; }
-        .score-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .score-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; animation: ringPulse 1.5s ease-out; }
+        @keyframes ringPulse { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         .score-high { background: conic-gradient(#22c55e 0deg, #22c55e {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
         .score-mid { background: conic-gradient(#eab308 0deg, #eab308 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
         .score-low { background: conic-gradient(#ef4444 0deg, #ef4444 {{ (data.ats_score or 65) * 3.6 }}deg, #333 {{ (data.ats_score or 65) * 3.6 }}deg); }
         .score-inner { width: 100px; height: 100px; background: #0a0a1a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .score-num { font-size: 2.2rem; font-weight: 800; }
+        .score-num { font-size: 2.2rem; font-weight: 800; animation: fadeInUp 0.6s ease-out 0.3s both; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .score-label { font-size: 0.75rem; color: #666; }
         .score-details { flex: 1; }
         .score-verdict { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
@@ -28,14 +30,25 @@
         .score-bar-item { display: flex; align-items: center; gap: 12px; }
         .score-bar-label { width: 130px; font-size: 0.85rem; color: #888; }
         .score-bar-bg { flex: 1; height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
-        .score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .score-bar-fill { height: 100%; border-radius: 4px; animation: barGrow 0.8s ease-out both; }
+        @keyframes barGrow { from { width: 0 !important; } }
         .score-bar-fill.high { background: #22c55e; }
         .score-bar-fill.mid { background: #eab308; }
         .score-bar-fill.low { background: #ef4444; }
         .score-bar-val { width: 35px; text-align: right; font-size: 0.85rem; font-weight: 600; }
 
+        /* ATS Type Card */
+        .ats-type-card { background: #111; border: 1px solid #6366f1; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .ats-type-icon { font-size: 1.5rem; }
+        .ats-type-info { flex: 1; }
+        .ats-type-name { font-weight: 700; color: #a855f7; text-transform: capitalize; }
+        .ats-type-tip { font-size: 0.85rem; color: #888; margin-top: 4px; }
+
         /* Sections */
-        .section { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .section { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out both; }
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.15s; }
+        .section:nth-child(4) { animation-delay: 0.2s; }
         .section h2 { font-size: 1.15rem; margin-bottom: 16px; color: #fff; display: flex; align-items: center; gap: 8px; }
         .section h3 { font-size: 1rem; margin: 16px 0 8px; color: #ccc; }
 
@@ -51,10 +64,10 @@
         .bullet-change { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; }
         .bullet-change.added { background: #1a2e1a; color: #22c55e; }
         .bullet-change.improved { background: #1a1a30; color: #818cf8; }
-        .bullet-diff { display: grid; gap: 8px; }
-        .bullet-original { color: #888; font-size: 0.85rem; padding: 8px 12px; background: #0a0a0a; border-radius: 6px; border-left: 3px solid #ef4444; }
-        .bullet-optimized { color: #e0e0e0; font-size: 0.85rem; padding: 8px 12px; background: #0a0a1a; border-radius: 6px; border-left: 3px solid #22c55e; }
-        .bullet-reason { font-size: 0.8rem; color: #a855f7; margin-top: 6px; font-style: italic; }
+        .bullet-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .bullet-original { color: #888; font-size: 0.85rem; padding: 10px 12px; background: #0a0a0a; border-radius: 6px; border-left: 3px solid #ef4444; }
+        .bullet-optimized { color: #e0e0e0; font-size: 0.85rem; padding: 10px 12px; background: #0a0a1a; border-radius: 6px; border-left: 3px solid #22c55e; }
+        .bullet-reason { font-size: 0.8rem; color: #a855f7; margin-top: 8px; font-style: italic; padding: 6px 10px; background: #1a1030; border-radius: 4px; }
 
         /* Improvements */
         .improvement { padding: 12px 0; border-bottom: 1px solid #222; display: flex; gap: 10px; }
@@ -66,19 +79,45 @@
 
         /* Buttons */
         .btn-group { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .copy-btn, .export-btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.9rem; }
+        .copy-btn, .export-btn, .jobs-btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.9rem; text-decoration: none; display: inline-block; }
         .copy-btn { background: #6366f1; color: #fff; }
         .copy-btn:hover { background: #5558e6; }
         .export-btn { background: #22c55e; color: #fff; }
         .export-btn:hover { background: #16a34a; }
+        .share-btn { background: #333; color: #fff; border: 1px solid #555; }
+        .share-btn:hover { background: #444; }
+        .jobs-btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; }
+        .jobs-btn:hover { opacity: 0.9; }
+
+        /* Share Popup */
+        .share-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .share-popup.show { display: flex; }
+        .share-box { background: #111; border: 1px solid #333; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; }
+        .share-box h3 { color: #fff; margin-bottom: 20px; text-align: center; }
+        .share-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .share-option { padding: 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .share-option:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .share-option .icon { font-size: 1.5rem; margin-bottom: 8px; }
+        .share-option .label { font-size: 0.85rem; color: #ccc; }
+        .share-close { margin-top: 16px; width: 100%; padding: 12px; background: #333; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
+
+        /* Feedback Widget */
+        .feedback-btn { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; border-radius: 50px; padding: 12px 20px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(99,102,241,0.3); z-index: 100; }
+        .feedback-popup { display: none; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 100; }
+        .feedback-popup.show { display: block; }
+        .feedback-popup h4 { color: #fff; margin-bottom: 16px; }
+        .feedback-popup textarea { width: 100%; height: 100px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #e0e0e0; resize: none; margin-bottom: 12px; }
+        .feedback-popup textarea:focus { outline: none; border-color: #6366f1; }
+        .feedback-submit { width: 100%; padding: 12px; background: #6366f1; border: none; border-radius: 8px; color: #fff; cursor: pointer; font-weight: 600; }
 
         /* CTA */
         .cta-card { background: linear-gradient(135deg, #1a1030, #111); border: 1px solid #6366f1; border-radius: 12px; padding: 32px; text-align: center; margin: 30px 0; }
         .cta-card h3 { font-size: 1.3rem; margin-bottom: 12px; color: #fff; }
+        .cta-card p { color: #888; margin-bottom: 16px; }
         .cta-btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; }
 
         .proof { text-align: center; padding: 20px; color: #555; font-size: 0.8rem; }
-        @media (max-width: 640px) { .score-top { flex-direction: column; text-align: center; } .score-bar-label { width: 100px; } }
+        @media (max-width: 640px) { .score-top { flex-direction: column; text-align: center; } .score-bar-label { width: 100px; } .bullet-diff { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -121,10 +160,23 @@
             </div>
         </div>
 
+        <!-- ATS Type Info (if identified) -->
+        {% if data.ats_type is defined and data.ats_type and data.ats_type.type != 'unknown' %}
+        <div class="ats-type-card">
+            <div class="ats-type-icon">&#x1F3AF;</div>
+            <div class="ats-type-info">
+                <div class="ats-type-name">{{ data.ats_type.type }} ATS Detected</div>
+                {% if data.ats_type.tips is defined and data.ats_type.tips %}
+                <div class="ats-type-tip">{{ data.ats_type.tips[0] }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Matched Keywords -->
         {% if data.keyword_match is defined and data.keyword_match %}
         <div class="section">
-            <h2>Matched Keywords</h2>
+            <h2>&#x2705; Matched Keywords ({{ data.keyword_match|length }})</h2>
             {% for kw in data.keyword_match %}
             <span class="tag match">{{ kw }}</span>
             {% endfor %}
@@ -134,7 +186,7 @@
         <!-- Missing Keywords -->
         {% if data.missing_keywords is defined and data.missing_keywords %}
         <div class="section">
-            <h2>Missing Keywords</h2>
+            <h2>&#x26A0;&#xFE0F; Missing Keywords ({{ data.missing_keywords|length }})</h2>
             <p style="color:#888;font-size:0.85rem;margin-bottom:12px">Add these to your resume to improve ATS compatibility:</p>
             {% for kw in data.missing_keywords %}
             <span class="tag missing">{{ kw }}</span>
@@ -147,7 +199,7 @@
         {% for exp in data.experience %}
             {% if exp.bullet_analysis is defined and exp.bullet_analysis %}
         <div class="section">
-            <h2>Bullet Point Analysis</h2>
+            <h2>&#x1F50D; Bullet Point Analysis</h2>
             <div class="bullet-header">
                 <span class="bullet-company">{{ exp.title|default('') }} at {{ exp.company|default('') }}</span>
             </div>
@@ -176,7 +228,7 @@
         <!-- Improvements -->
         {% if data.improvements is defined and data.improvements %}
         <div class="section">
-            <h2>Improvements</h2>
+            <h2>&#x1F4A1; Improvements</h2>
             {% for imp in data.improvements %}
             <div class="improvement">
                 <span class="num">{{ loop.index }}.</span>
@@ -188,21 +240,30 @@
 
         <!-- Optimized Resume -->
         <div class="section">
-            <h2>Optimized Resume</h2>
+            <h2>&#x1F4DD; Optimized Resume</h2>
             <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|default('Optimization completed. Review the changes above.') }}</div>
             <div class="btn-group">
                 <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
                 <form action="/export/pdf" method="POST" style="display:inline">
                     <input type="hidden" name="resume_content" id="resumeContent" value="{{ data.optimized_resume }}">
+                    <select name="template" style="padding:8px;border-radius:6px;background:#1a1a1a;color:#e0e0e0;border:1px solid #333;margin-right:8px">
+                        <option value="modern">Modern</option>
+                        <option value="professional">Professional</option>
+                        <option value="creative">Creative</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="executive">Executive</option>
+                    </select>
                     <button type="submit" class="export-btn">Download PDF</button>
                 </form>
             </div>
         </div>
 
+        <!-- CTAs -->
         <div class="cta-card">
-            <h3>Want to optimize another resume?</h3>
-            <p>Get unlimited optimizations with ResumeForge Pro</p>
-            <a href="/" class="cta-btn">Try Again</a>
+            <h3>Want to find matching jobs?</h3>
+            <p>Discover roles that match your skills and experience</p>
+            <a href="/jobs" class="jobs-btn" style="margin-right:12px">Find Matching Jobs</a>
+            <a href="/" class="cta-btn">Optimize Another Resume</a>
         </div>
 
         <div class="proof">
@@ -219,6 +280,85 @@
                 setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
             });
         }
+
+        // Share functionality
+        function showShare() {
+            document.getElementById('sharePopup').classList.add('show');
+        }
+        function hideShare() {
+            document.getElementById('sharePopup').classList.remove('show');
+        }
+        function shareTwitter() {
+            const text = 'I just optimized my resume with ResumeForge AI! Got an ATS score of {{ data.ats_score|default(65) }}. Try it free at ';
+            window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+        }
+        function shareLinkedIn() {
+            const url = 'https://resumeforge.ai';
+            window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url), '_blank');
+        }
+        function shareReddit() {
+            const title = 'ResumeForge AI - Free ATS Resume Optimizer';
+            const url = 'https://resumeforge.ai';
+            window.open('https://reddit.com/submit?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title), '_blank');
+        }
+        function copyLink() {
+            navigator.clipboard.writeText('https://resumeforge.ai').then(() => {
+                alert('Link copied!');
+            });
+        }
+
+        // Feedback functionality
+        function toggleFeedback() {
+            document.getElementById('feedbackPopup').classList.toggle('show');
+        }
+        function submitFeedback() {
+            const text = document.getElementById('feedbackText').value;
+            if (text.trim()) {
+                // Send to server (we'll add this endpoint later)
+                fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({feedback: text, page: 'result', score: '{{ data.ats_score|default(65) }}'})
+                });
+                alert('Thanks for your feedback!');
+                document.getElementById('feedbackText').value = '';
+                document.getElementById('feedbackPopup').classList.remove('show');
+            }
+        }
     </script>
+
+    <!-- Share Popup -->
+    <div class="share-popup" id="sharePopup" onclick="if(event.target===this)hideShare()">
+        <div class="share-box">
+            <h3>Share Your Results</h3>
+            <div class="share-options">
+                <div class="share-option" onclick="shareTwitter()">
+                    <div class="icon">&#x1F426;</div>
+                    <div class="label">Twitter</div>
+                </div>
+                <div class="share-option" onclick="shareLinkedIn()">
+                    <div class="icon">&#x1F4BC;</div>
+                    <div class="label">LinkedIn</div>
+                </div>
+                <div class="share-option" onclick="shareReddit()">
+                    <div class="icon">&#x1F4F0;</div>
+                    <div class="label">Reddit</div>
+                </div>
+                <div class="share-option" onclick="copyLink()">
+                    <div class="icon">&#x1F517;</div>
+                    <div class="label">Copy Link</div>
+                </div>
+            </div>
+            <button class="share-close" onclick="hideShare()">Close</button>
+        </div>
+    </div>
+
+    <!-- Feedback Widget -->
+    <button class="feedback-btn" onclick="toggleFeedback()">Feedback</button>
+    <div class="feedback-popup" id="feedbackPopup">
+        <h4>Send Feedback</h4>
+        <textarea id="feedbackText" placeholder="Tell us what you think or suggest improvements..."></textarea>
+        <button class="feedback-submit" onclick="submitFeedback()">Submit</button>
+    </div>
 </body>
 </html>

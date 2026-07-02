@@ -6,3 +6,5 @@ xhtml2pdf==0.2.15
 python-dotenv==1.0.0
 supabase==2.0.0
 bcrypt==4.2.1
+flask-limiter>=3.0
+flask-wtf>=1.2

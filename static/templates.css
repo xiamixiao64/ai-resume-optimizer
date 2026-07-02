@@ -1,0 +1,40 @@
+/* Resume Template Styles for PDF Export */
+
+/* Base styles */
+.resume-template { font-size: 11pt; line-height: 1.5; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }
+.resume-template h1 { margin: 0 0 4px 0; }
+.resume-template h2 { margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid; font-size: 12pt; text-transform: uppercase; letter-spacing: 1px; }
+.resume-template h3 { margin: 8px 0 4px 0; font-size: 11pt; }
+.resume-template p { margin: 4px 0; }
+.resume-template ul { margin: 4px 0; padding-left: 20px; }
+.resume-template li { margin: 2px 0; }
+.resume-template .contact { font-size: 10pt; color: #666; margin-bottom: 12px; }
+.resume-template .dates { font-size: 10pt; color: #666; }
+
+/* Modern Template */
+.template-modern h1 { color: #6366f1; }
+.template-modern h2 { color: #6366f1; border-color: #6366f1; }
+.template-modern .contact { color: #6366f1; }
+
+/* Professional Template */
+.template-professional { font-family: 'Georgia', 'Times New Roman', serif; }
+.template-professional h1 { color: #1e3a5f; }
+.template-professional h2 { color: #1e3a5f; border-color: #1e3a5f; }
+.template-professional .contact { color: #1e3a5f; }
+
+/* Creative Template */
+.template-creative h1 { color: #ec4899; }
+.template-creative h2 { color: #ec4899; border-color: #ec4899; }
+.template-creative .contact { color: #ec4899; }
+
+/* Minimal Template */
+.template-minimal { font-family: 'Helvetica Neue', 'Arial', sans-serif; }
+.template-minimal h1 { color: #333; font-weight: 300; font-size: 18pt; }
+.template-minimal h2 { color: #333; border-color: #999; font-weight: 400; }
+.template-minimal .contact { color: #666; }
+
+/* Executive Template */
+.template-executive { font-family: 'Georgia', serif; }
+.template-executive h1 { color: #8B7355; font-size: 16pt; }
+.template-executive h2 { color: #8B7355; border-color: #8B7355; }
+.template-executive .contact { color: #8B7355; }

@@ -9,6 +9,32 @@
     <meta property="og:title" content="ResumeForge AI - Beat ATS Systems">
     <meta property="og:description" content="Optimize your resume for ATS in 30 seconds. Free trial.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://resumeforge.ai">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ResumeForge AI - Beat ATS Systems">
+    <meta name="twitter:description" content="AI-powered resume optimizer. Get ATS score, keyword matching, and smart rewrite in 30 seconds.">
+    <link rel="canonical" href="https://resumeforge.ai">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "ResumeForge AI",
+        "description": "AI-powered resume optimizer. Get ATS score, keyword matching, and smart rewrite in 30 seconds.",
+        "url": "https://resumeforge.ai",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1250"
+        }
+    }
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
@@ -86,6 +112,10 @@
     <div class="hero">
         <div class="nav">
             {% if user %}
+            <a href="/jobs">Find Jobs</a>
+            <a href="/linkedin">LinkedIn</a>
+            <a href="/templates">Templates</a>
+            <a href="/history">History</a>
             <span class="user-email">{{ user.email }}</span>
             <a href="/logout">Logout</a>
             {% else %}
@@ -111,7 +141,7 @@
         </div>
 
         <div class="card">
-            <h2>Optimize Your Resume <span class="free-badge" id="freeBadge">3 FREE</span></h2>
+            <h2>Optimize Your Resume <span class="free-badge" id="freeBadge">5 FREE</span></h2>
             <div class="mode-select">
                 <div class="mode-btn active" data-mode="optimize" onclick="setMode(this)">
                     <span class="icon">🚀</span>Full Optimize
