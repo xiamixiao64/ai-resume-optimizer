@@ -5,6 +5,56 @@ class ATSEngine:
     """ATS 评分引擎"""
     
     def __init__(self):
+        self.ats_patterns = {
+            "workday": {
+                "patterns": ["workday", "myworkdayjobs", "wd5.myworkday", "wday.com"],
+                "tips": [
+                    "Workday 系统重视关键词精确匹配",
+                    "确保技能名称与 JD 完全一致",
+                    "使用标准的章节标题"
+                ]
+            },
+            "lever": {
+                "patterns": ["lever.co", "jobs.lever", "lever.co/"],
+                "tips": [
+                    "Lever 系统重视格式简洁",
+                    "避免使用表格和复杂格式",
+                    "保持简历简洁明了"
+                ]
+            },
+            "greenhouse": {
+                "patterns": ["greenhouse.io", "boards.greenhouse", "greenhouse.com"],
+                "tips": [
+                    "Greenhouse 重视技能标签",
+                    "在技能列表中明确列出技术栈",
+                    "使用标准的职位名称"
+                ]
+            },
+            "icims": {
+                "patterns": ["icims.com", "jobs.icims", "icims.com/"],
+                "tips": [
+                    "iCIMS 系统解析能力较强",
+                    "保持标准格式即可",
+                    "确保关键词自然分布"
+                ]
+            },
+            "taleo": {
+                "patterns": ["taleo", "oracle.com/taleo", "talent.oracle"],
+                "tips": [
+                    "Taleo 系统较为严格",
+                    "避免使用特殊字符",
+                    "使用标准的章节标题"
+                ]
+            },
+            "smartrecruiters": {
+                "patterns": ["smartrecruiters", "smartrecruiters.com"],
+                "tips": [
+                    "SmartRecruiters 重视关键词匹配",
+                    "确保技能与 JD 匹配",
+                    "保持格式简洁"
+                ]
+            }
+        }
         self.weights = {
             "formatting": 20,
             "keywords": 35,
@@ -290,3 +340,26 @@ class ATSEngine:
             issues.append("建议添加所在城市")
 
         return {"score": score, "issues": issues}
+
+    def identify_ats(self, jd_text):
+        """从 JD 识别 ATS 类型"""
+        jd_lower = jd_text.lower()
+
+        for ats_name, config in self.ats_patterns.items():
+            for pattern in config["patterns"]:
+                if pattern in jd_lower:
+                    return {
+                        "type": ats_name,
+                        "confidence": 0.85,
+                        "tips": config["tips"]
+                    }
+
+        return {
+            "type": "unknown",
+            "confidence": 0,
+            "tips": [
+                "无法识别具体 ATS 系统",
+                "建议使用标准格式和关键词",
+                "保持简历简洁明了"
+            ]
+        }

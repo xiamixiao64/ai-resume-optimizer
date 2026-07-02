@@ -171,3 +171,24 @@ john@email.com | (555) 123-4567
     result = engine.check_contact(resume)
     assert 50 <= result["score"] <= 75
     assert len(result["issues"]) >= 1
+
+# ---- ATS Type Identification Tests ----
+
+def test_identify_workday():
+    engine = ATSEngine()
+    jd = "Apply at https://wd5.myworkdayjobs.com/en-US/Google"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "workday"
+    assert result["confidence"] > 0.7
+
+def test_identify_lever():
+    engine = ATSEngine()
+    jd = "Apply at https://jobs.lever.co/company/123"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "lever"
+
+def test_identify_unknown():
+    engine = ATSEngine()
+    jd = "Please send your resume to hr@company.com"
+    result = engine.identify_ats(jd)
+    assert result["type"] == "unknown"
