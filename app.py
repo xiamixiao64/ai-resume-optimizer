@@ -8,12 +8,25 @@ import datetime
 import uuid
 import re
 import random
+import hmac
+import logging
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+logger = logging.getLogger(__name__)
+
+# Try bcrypt, fallback to SHA-256 for existing passwords
+try:
+    import bcrypt
+    HAS_BCRYPT = True
+except ImportError:
+    HAS_BCRYPT = False
 
 # Supabase config
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
@@ -38,14 +51,23 @@ LEMONSQUEEZY_VARIANT_ID = os.environ.get('LEMONSQUEEZY_VARIANT_ID', '')
 FREE_OPTIMIZATIONS = 3
 
 def hash_password(password):
-    """Hash password with salt"""
+    """Hash password with bcrypt"""
+    if HAS_BCRYPT:
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    # Fallback: SHA-256 with salt (for existing passwords)
     salt = uuid.uuid4().hex
-    return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+    return 'sha256:' + hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
 
 def verify_password(stored, provided):
     """Verify password against stored hash"""
-    password, salt = stored.split(':')
-    return hashlib.sha256(salt.encode() + provided.encode()).hexdigest() == password
+    if stored.startswith('$2b$') or stored.startswith('$2a$'):
+        return bcrypt.checkpw(provided.encode(), stored.encode())
+    # Legacy SHA-256 fallback
+    try:
+        prefix, password, salt = stored.split(':')
+        return hashlib.sha256(salt.encode() + provided.encode()).hexdigest() == password
+    except ValueError:
+        return False
 
 def get_current_user():
     """Get current logged-in user or None"""
@@ -60,7 +82,7 @@ def get_current_user():
         if result.data and len(result.data) > 0:
             return result.data[0]
     except Exception as e:
-        print(f"DB error: {e}")
+        logger.error(f"DB error: {e}")
     return None
 
 def get_user_id():
@@ -110,10 +132,10 @@ def login_user(email, password):
     if supabase:
         result = supabase.table('users').select('*').eq('email', email).execute()
         if not result.data or len(result.data) == 0:
-            return None, "Email not found"
+            return None, "Invalid email or password"
         user = result.data[0]
         if not verify_password(user['password'], password):
-            return None, "Wrong password"
+            return None, "Invalid email or password"
         return user['id'], None
     else:
         # In-memory fallback
@@ -122,8 +144,8 @@ def login_user(email, password):
                 if verify_password(u['password'], password):
                     return uid, None
                 else:
-                    return None, "Wrong password"
-        return None, "Email not found"
+                    return None, "Invalid email or password"
+        return None, "Invalid email or password"
 
 def get_user_usage(user_id):
     """Get user's optimization count"""
@@ -277,8 +299,6 @@ def format_structured_resume(data):
 
 def fix_round_numbers(text):
     """Replace round numbers with more realistic variations"""
-    import re
-    
     def replace_percentage(match):
         num = int(match.group(1))
         # Replace round numbers with varied alternatives
@@ -395,11 +415,14 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
         if "choices" in data and len(data["choices"]) > 0:
             return data["choices"][0]["message"]["content"]
         elif "error" in data:
-            return json.dumps({"error": data["error"].get("message", "API error"), "ats_score": 0, "optimized_resume": "API temporarily unavailable.", "improvements": [], "keyword_match": [], "missing_keywords": []})
+            logger.error(f"Groq API error: {data['error']}")
+            return json.dumps({"error": "AI service temporarily unavailable", "ats_score": 0, "optimized_resume": "API temporarily unavailable.", "improvements": [], "keyword_match": [], "missing_keywords": []})
         else:
-            return json.dumps({"error": "Unexpected response", "ats_score": 0, "optimized_resume": str(data)[:500], "improvements": [], "keyword_match": [], "missing_keywords": []})
+            logger.error(f"Unexpected Groq response: {str(data)[:200]}")
+            return json.dumps({"error": "Unexpected response from AI", "ats_score": 0, "optimized_resume": "API temporarily unavailable.", "improvements": [], "keyword_match": [], "missing_keywords": []})
     except Exception as e:
-        return json.dumps({"error": str(e), "ats_score": 0, "optimized_resume": f"Error: {str(e)}", "improvements": [], "keyword_match": [], "missing_keywords": []})
+        logger.error(f"AI call failed: {e}")
+        return json.dumps({"error": "AI service temporarily unavailable", "ats_score": 0, "optimized_resume": "API temporarily unavailable.", "improvements": [], "keyword_match": [], "missing_keywords": []})
 
 def parse_pdf(file):
     try:
@@ -512,7 +535,6 @@ def optimize():
 
     try:
         import html as html_lib
-        import re
         result = result.strip()
         result = html_lib.unescape(result)
         
@@ -547,7 +569,7 @@ def optimize():
                     inner = json.loads(data["optimized_resume"])
                     if isinstance(inner, dict):
                         data["optimized_resume"] = format_resume_dict(inner)
-                except:
+                except (json.JSONDecodeError, ValueError):
                     pass
         
         # Ensure all required fields exist
@@ -585,13 +607,15 @@ def optimize():
 
 @app.route('/export/pdf', methods=['POST'])
 def export_pdf():
+    import html as html_lib
     resume_content = request.form.get('resume_content', '')
     if not resume_content:
         return jsonify({'error': 'No content'}), 400
 
     css = "body{font-family:Arial;font-size:11pt;line-height:1.5;color:#333;max-width:800px;margin:0 auto;padding:40px}"
+    safe_content = html_lib.escape(resume_content).replace('\n', '<br>').replace('  ', '&nbsp;')
     html_content = "<!DOCTYPE html><html><head><meta charset='UTF-8'><style>" + css + "</style></head><body>"
-    html_content += resume_content.replace(chr(10), '<br>').replace('  ', '&nbsp;')
+    html_content += safe_content
     html_content += "</body></html>"
 
     try:
@@ -601,17 +625,30 @@ def export_pdf():
         output.seek(0)
         return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='optimized_resume.pdf')
     except Exception as e:
-        return jsonify({'error': 'PDF generation failed: ' + str(e)}), 500
+        logger.error(f"PDF generation failed: {e}")
+        return jsonify({'error': 'PDF generation failed'}), 500
 
 @app.route('/api/optimize', methods=['POST'])
 def api_optimize():
+    # Require authentication
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Authentication required'}), 401
+    if not check_usage_limit(user_id):
+        return jsonify({'error': 'Usage limit reached'}), 403
+
     data = request.json
+    if not data:
+        return jsonify({'error': 'Invalid JSON'}), 400
+
     resume_text = data.get('resume', '')
     job_description = data.get('job_description', '')
     mode = data.get('mode', 'optimize')
 
     if not resume_text:
         return jsonify({'error': 'resume required'}), 400
+
+    increment_usage(user_id)
 
     prompt = "Optimize this resume. Return JSON with: ats_score, optimized_resume, improvements, keyword_match, missing_keywords.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + (job_description or "N/A")
 
@@ -621,14 +658,14 @@ def api_optimize():
         if result.startswith("```"):
             result = result.split("\n", 1)[1].rsplit("```", 1)[0]
         parsed = json.loads(result)
-    except:
+    except (json.JSONDecodeError, ValueError):
         parsed = {"ats_score": 65, "optimized_resume": result, "improvements": []}
 
     return jsonify(parsed)
 
 @app.route('/health')
 def health():
-    return jsonify({"status": "ok", "groq_key_set": bool(GROQ_API_KEY)})
+    return jsonify({"status": "ok"})
 
 @app.route('/api/usage')
 def get_usage():
@@ -686,14 +723,24 @@ def create_checkout():
 
 @app.route('/api/webhook', methods=['POST'])
 def webhook():
-    """Handle LemonSqueezy webhook"""
-    # In production, verify webhook signature
+    """Handle LemonSqueezy webhook with signature verification"""
+    webhook_secret = os.environ.get('LEMONSQUEEZY_WEBHOOK_SECRET', '')
+    
+    if webhook_secret:
+        signature = request.headers.get('X-Signature', '')
+        body = request.get_data(as_text=True)
+        expected = hmac.new(webhook_secret.encode(), body.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(signature, expected):
+            logger.warning("Webhook signature mismatch")
+            return jsonify({'error': 'Invalid signature'}), 401
+    
     data = request.json
     if data and data.get('meta', {}).get('event_name') == 'order_created':
         custom_data = data.get('data', {}).get('attributes', {}).get('custom_data', {})
         user_id = custom_data.get('user_id')
         if user_id:
             set_pro_status(user_id, True)
+            logger.info(f"Pro status granted to user {user_id}")
     return jsonify({'status': 'ok'})
 
 @app.route('/api/check-usage', methods=['POST'])
@@ -703,8 +750,6 @@ def check_usage():
     if not user_id:
         return jsonify({'error': 'Not logged in', 'allowed': False}), 401
     can_use = check_usage_limit(user_id)
-    if can_use:
-        increment_usage(user_id)
     return jsonify({
         'allowed': can_use,
         'remaining': max(0, FREE_OPTIMIZATIONS - get_user_usage(user_id)) if not is_pro_user(user_id) else -1,

@@ -33,11 +33,11 @@
     <div class="container">
         <div class="section">
             <h2>✉️ Your Cover Letter</h2>
-            <div class="cover-letter" id="coverLetter">{{ data.cover_letter|safe|default('Cover letter generated.') }}</div>
+            <div class="cover-letter" id="coverLetter">{{ data.cover_letter|default('Cover letter generated.') }}</div>
             <div class="btn-group">
                 <button class="copy-btn" onclick="copyLetter()">📋 Copy to Clipboard</button>
                 <form action="/export/pdf" method="POST" style="display:inline">
-                    <input type="hidden" name="resume_content" id="letterContent" value="{{ data.cover_letter|safe }}">
+                    <input type="hidden" name="resume_content" id="letterContent" value="{{ data.cover_letter }}">
                     <button type="submit" class="export-btn">📥 Download PDF</button>
                 </form>
             </div>
