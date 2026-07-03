@@ -143,6 +143,9 @@
                 </div>
                 <div class="score-details">
                     <div class="score-verdict">{{ verdict }}</div>
+                    <div style="margin-bottom:12px">
+                        <button class="copy-btn" onclick="copyScore()" style="font-size:0.85rem;padding:6px 12px">📋 Copy Score</button>
+                    </div>
                     {% if data.score_breakdown is defined and data.score_breakdown %}
                     <div class="score-bars">
                         {% for key, val in data.score_breakdown.items() %}
@@ -272,6 +275,16 @@
     </div>
 
     <script>
+        function copyScore() {
+            const score = '{{ data.ats_score|default(65) }}';
+            const text = `My resume got an ATS score of ${score}/100 on ResumeForge AI! Try it free at https://resumeforge.ai`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy Score', 2000);
+            });
+        }
+
         function copyResume() {
             const text = document.getElementById('resumeOutput').innerText;
             navigator.clipboard.writeText(text).then(() => {

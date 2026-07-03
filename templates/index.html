@@ -182,11 +182,14 @@
                 <label>Job Description <span style="color:#666;font-weight:400">(optional but recommended)</span></label>
                 <textarea name="job_description" id="jobDesc" placeholder="Paste the job description you're applying for...&#10;&#10;This helps AI tailor your resume to the specific role." style="min-height:120px"></textarea>
                 <br><br>
-                <button type="submit" class="submit-btn" id="submitBtn">Optimize My Resume — It's Free</button>
+                <button type="submit" class="submit-btn" id="submitBtn">{{ cta_text|default('Optimize My Resume — It\'s Free') }}</button>
             </form>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>AI is analyzing your resume...</p>
+                <p id="loadingText">AI is analyzing your resume...</p>
+                <div style="width:200px;height:4px;background:#333;border-radius:2px;margin:12px auto;overflow:hidden">
+                    <div id="progressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:2px;transition:width 0.3s"></div>
+                </div>
             </div>
             <p style="text-align:center;color:#555;font-size:0.8rem;margin-top:12px">No signup required. 3 free optimizations per device. <span style="color:#22c55e">Already used by 2,847 job seekers</span></p>
         </div>
@@ -263,6 +266,15 @@
     </div>
 
     <script>
+        // Event tracking
+        function trackEvent(eventType, eventData = {}) {
+            fetch('/api/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event_type: eventType, event_data: eventData })
+            }).catch(() => {});
+        }
+
         // Usage tracking - server-side
         async function getUsage() {
             try {
@@ -345,6 +357,7 @@
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             document.getElementById('modeInput').value = el.dataset.mode;
+            trackEvent('mode_select', { mode: el.dataset.mode });
         }
 
         document.getElementById('optimizeForm').addEventListener('submit', async function(e) {
@@ -367,10 +380,30 @@
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
 
+            // Progress animation
+            const progressBar = document.getElementById('progressBar');
+            const loadingText = document.getElementById('loadingText');
+            const steps = [
+                { progress: 20, text: 'Uploading resume...' },
+                { progress: 40, text: 'Running ATS analysis...' },
+                { progress: 60, text: 'Matching keywords...' },
+                { progress: 80, text: 'Generating improvements...' },
+                { progress: 95, text: 'Almost done...' }
+            ];
+            let stepIndex = 0;
+            const progressInterval = setInterval(() => {
+                if (stepIndex < steps.length) {
+                    progressBar.style.width = steps[stepIndex].progress + '%';
+                    loadingText.textContent = steps[stepIndex].text;
+                    stepIndex++;
+                }
+            }, 800);
+
             // Submit form via AJAX
             const formData = new FormData(document.getElementById('optimizeForm'));
             try {
                 const resp = await fetch('/optimize', { method: 'POST', body: formData });
+                clearInterval(progressInterval);
                 if (resp.status === 401) {
                     window.location.href = '/register';
                     return;
@@ -394,6 +427,9 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
+            // Track page view
+            trackEvent('page_view', { page: 'home', ab_variant: '{{ ab_variant|default("A") }}' });
+
             const usage = await getUsage();
             if (!usage) {
                 // Not logged in, redirect handled by getUsage
@@ -406,9 +442,10 @@
             }
         });
         
-        async function handleFileUpload(input) {
+        async         function handleFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
+            trackEvent('file_upload', { filename: file.name, size: file.size });
             const status = document.getElementById('uploadStatus');
             status.style.display = 'block';
             status.style.color = '#a855f7';

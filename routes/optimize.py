@@ -127,7 +127,22 @@ def index():
     user = get_user_by_id(session.get('user_id'))
     if not user:
         return redirect(url_for('auth.register'))
-    return render_template('index.html', user=user)
+
+    # Track page view
+    track_event(user['id'], 'page_view', {'page': 'home'})
+
+    # A/B testing for CTA
+    import random
+    ab_test = session.get('ab_cta', random.choice(['A', 'B', 'C']))
+    session['ab_cta'] = ab_test
+
+    cta_options = {
+        'A': "Optimize My Resume — It's Free",
+        'B': "Get Your ATS Score — Free",
+        'C': "Beat the ATS — Start Free"
+    }
+
+    return render_template('index.html', user=user, cta_text=cta_options[ab_test], ab_variant=ab_test)
 
 
 @optimize_bp.route('/upload', methods=['POST'])
@@ -553,6 +568,20 @@ def get_usage():
         'usage_count': usage, 'free_limit': FREE_OPTIMIZATIONS,
         'remaining': remaining, 'is_pro': is_pro, 'user_id': user_id
     })
+
+
+@optimize_bp.route('/api/track', methods=['POST'])
+def track_event_api():
+    """Track user behavior events from frontend"""
+    user_id = get_user_id()
+    data = request.json
+    event_type = data.get('event_type', '')
+    event_data = data.get('event_data', {})
+
+    if user_id and event_type:
+        track_event(user_id, event_type, event_data)
+
+    return jsonify({'status': 'ok'})
 
 
 @optimize_bp.route('/api/create-checkout', methods=['POST'])
