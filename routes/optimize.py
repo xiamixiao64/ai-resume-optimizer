@@ -268,6 +268,81 @@ JOB DESCRIPTION:
 4. 专业但不生硬"""
         system_msg = "你是职业顾问。返回严格JSON。"
         data = parse_ai_json(call_ai(prompt, system_msg))
+    elif mode == 'interview':
+        prompt = """基于这份简历和目标职位，生成面试准备问题和答案建议。
+
+RESUME:
+""" + resume_text + """
+
+JOB DESCRIPTION:
+""" + jd + """
+
+返回严格JSON：
+{
+  "technical_questions": [
+    {"question": "技术面试问题", "answer_guide": "回答要点和示例", "difficulty": "easy/medium/hard"}
+  ],
+  "behavioral_questions": [
+    {"question": "行为面试问题", "answer_guide": "使用STAR方法的回答框架", "category": "leadership/teamwork/problem-solving"}
+  ],
+  "company_questions": [
+    {"question": "关于公司的问题", "why_ask": "面试官为什么问这个", "good_answer": "好的回答方向"}
+  ],
+  "your_questions": [
+    {"question": "你可以问面试官的问题", "purpose": "这个问题展示你的什么特质"}
+  ],
+  "tips": ["面试技巧建议1", "建议2"]
+}
+
+规则：
+1. 技术问题基于简历中的技能和经验
+2. 行为问题使用STAR框架（Situation, Task, Action, Result）
+3. 公司问题基于行业和职位特点
+4. 问题难度覆盖easy/medium/hard
+5. 每类至少3个问题"""
+        system_msg = "你是资深面试教练。返回严格JSON。"
+        data = parse_ai_json(call_ai(prompt, system_msg))
+    elif mode == 'salary':
+        prompt = """基于这份简历和目标职位，评估薪资范围和谈判策略。
+
+RESUME:
+""" + resume_text + """
+
+JOB DESCRIPTION:
+""" + jd + """
+
+返回严格JSON：
+{
+  "salary_range": {
+    "minimum": 80000,
+    "recommended": 100000,
+    "maximum": 130000,
+    "currency": "USD"
+  },
+  "market_analysis": "当前市场对该职位的薪资水平分析",
+  "factors": [
+    {"factor": "影响薪资的因素", "impact": "high/medium/low", "explanation": "具体说明"}
+  ],
+  "negotiation_tips": [
+    {"tip": "谈判技巧", "example": "具体话术示例"}
+  ],
+  "total_compensation": {
+    "base_salary": "基本工资",
+    "equity": "股权/期权",
+    "bonus": "奖金",
+    "benefits": "福利"
+  },
+  "red_flags": ["薪资谈判中的危险信号"]
+}
+
+规则：
+1. 基于经验年限、技能、地区估算薪资
+2. 考虑行业标准和公司规模
+3. 提供具体的谈判话术
+4. 分析总薪酬包（不只是基本工资）
+5. 指出常见的谈判陷阱"""
+        system_msg = "你是薪资谈判专家和职业顾问。返回严格JSON。"
+        data = parse_ai_json(call_ai(prompt, system_msg))
     else:
         prompt = """你是资深ATS优化专家和职业顾问。分析并优化这份简历。
 
@@ -360,6 +435,10 @@ TARGET JOB:
 
     if mode == 'cover_letter':
         return render_template('cover_letter.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
+    elif mode == 'interview':
+        return render_template('interview.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
+    elif mode == 'salary':
+        return render_template('salary.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
     return render_template('result.html', data=data, proof=proof, resume_text=resume_text, job_description=job_description)
 
 

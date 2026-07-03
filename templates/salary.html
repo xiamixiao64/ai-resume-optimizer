@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Estimation | ResumeForge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .salary-card { background: linear-gradient(135deg, #1a1a1a, #222); border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 30px; border: 2px solid #a855f7; }
+        .salary-range { font-size: 2.5rem; font-weight: 700; color: #a855f7; margin-bottom: 8px; }
+        .salary-label { color: #888; margin-bottom: 16px; }
+        .salary-breakdown { display: flex; justify-content: center; gap: 40px; margin-top: 20px; }
+        .salary-item { text-align: center; }
+        .salary-value { font-size: 1.5rem; font-weight: 700; color: #22c55e; }
+        .salary-key { font-size: 0.85rem; color: #888; }
+        .section { background: #1a1a1a; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .section h2 { color: #a855f7; margin-bottom: 16px; font-size: 1.3rem; }
+        .factor-card { background: #0a0a0a; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .factor-name { font-weight: 600; }
+        .factor-impact { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .factor-impact.high { background: #ef4444; color: #fff; }
+        .factor-impact.medium { background: #f59e0b; color: #fff; }
+        .factor-impact.low { background: #22c55e; color: #fff; }
+        .factor-explanation { color: #888; font-size: 0.85rem; margin-top: 8px; }
+        .tip-card { background: #0a0a0a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .tip-card h4 { color: #22c55e; margin-bottom: 8px; }
+        .tip-example { color: #888; font-size: 0.9rem; font-style: italic; margin-top: 8px; }
+        .compensation-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .comp-item { background: #0a0a0a; border-radius: 12px; padding: 16px; text-align: center; }
+        .comp-value { font-size: 1.3rem; font-weight: 700; color: #a855f7; }
+        .comp-label { font-size: 0.85rem; color: #888; margin-top: 4px; }
+        .red-flag { background: #2a1a1a; border-left: 4px solid #ef4444; border-radius: 8px; padding: 12px; margin-bottom: 8px; color: #fca5a5; }
+        .actions { display: flex; gap: 12px; margin-top: 30px; }
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: #1a1a1a; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Salary Estimation</h1>
+        <p class="subtitle">Based on your experience, skills, and target position</p>
+
+        {% if data.salary_range %}
+        <div class="salary-card">
+            <div class="salary-label">Recommended Salary Range</div>
+            <div class="salary-range">${{ data.salary_range.minimum // 1000 }}K - ${{ data.salary_range.maximum // 1000 }}K</div>
+            <div class="salary-label">Target: ${{ data.salary_range.recommended // 1000 }}K {{ data.salary_range.currency }}</div>
+            <div class="salary-breakdown">
+                <div class="salary-item">
+                    <div class="salary-value">${{ data.salary_range.minimum // 1000 }}K</div>
+                    <div class="salary-key">Minimum</div>
+                </div>
+                <div class="salary-item">
+                    <div class="salary-value">${{ data.salary_range.recommended // 1000 }}K</div>
+                    <div class="salary-key">Recommended</div>
+                </div>
+                <div class="salary-item">
+                    <div class="salary-value">${{ data.salary_range.maximum // 1000 }}K</div>
+                    <div class="salary-key">Maximum</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if data.market_analysis %}
+        <div class="section">
+            <h2>📊 Market Analysis</h2>
+            <p style="line-height: 1.8;">{{ data.market_analysis }}</p>
+        </div>
+        {% endif %}
+
+        {% if data.factors %}
+        <div class="section">
+            <h2>🎯 Salary Factors</h2>
+            {% for f in data.factors %}
+            <div class="factor-card">
+                <div>
+                    <div class="factor-name">{{ f.factor }}</div>
+                    <div class="factor-explanation">{{ f.explanation }}</div>
+                </div>
+                <span class="factor-impact {{ f.impact }}">{{ f.impact }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.total_compensation %}
+        <div class="section">
+            <h2>💼 Total Compensation Package</h2>
+            <div class="compensation-grid">
+                <div class="comp-item">
+                    <div class="comp-value">{{ data.total_compensation.base_salary }}</div>
+                    <div class="comp-label">Base Salary</div>
+                </div>
+                <div class="comp-item">
+                    <div class="comp-value">{{ data.total_compensation.equity }}</div>
+                    <div class="comp-label">Equity/Stock</div>
+                </div>
+                <div class="comp-item">
+                    <div class="comp-value">{{ data.total_compensation.bonus }}</div>
+                    <div class="comp-label">Bonus</div>
+                </div>
+                <div class="comp-item">
+                    <div class="comp-value">{{ data.total_compensation.benefits }}</div>
+                    <div class="comp-label">Benefits</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if data.negotiation_tips %}
+        <div class="section">
+            <h2>🤝 Negotiation Tips</h2>
+            {% for t in data.negotiation_tips %}
+            <div class="tip-card">
+                <h4>✓ {{ t.tip }}</h4>
+                {% if t.example %}
+                <div class="tip-example">"{{ t.example }}"</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.red_flags %}
+        <div class="section">
+            <h2>⚠️ Red Flags to Watch</h2>
+            {% for flag in data.red_flags %}
+            <div class="red-flag">⚠️ {{ flag }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <a href="/" class="btn">New Optimization</a>
+            <a href="/tracker" class="btn secondary">Track Application</a>
+        </div>
+    </div>
+</body>
+</html>

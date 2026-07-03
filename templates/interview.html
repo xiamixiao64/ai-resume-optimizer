@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Preparation | ResumeForge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .section { background: #1a1a1a; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .section h2 { color: #a855f7; margin-bottom: 16px; font-size: 1.3rem; }
+        .question-card { background: #0a0a0a; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #6366f1; }
+        .question { font-weight: 600; margin-bottom: 8px; }
+        .answer-guide { color: #888; font-size: 0.9rem; line-height: 1.6; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; }
+        .badge.easy { background: #22c55e; color: #fff; }
+        .badge.medium { background: #f59e0b; color: #fff; }
+        .badge.hard { background: #ef4444; color: #fff; }
+        .category { color: #a855f7; font-size: 0.8rem; margin-bottom: 4px; }
+        .tip-card { background: #0a0a0a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .tip-card h4 { color: #22c55e; margin-bottom: 8px; }
+        .actions { display: flex; gap: 12px; margin-top: 30px; }
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: #1a1a1a; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Interview Preparation</h1>
+        <p class="subtitle">Based on your resume and target position</p>
+
+        {% if data.technical_questions %}
+        <div class="section">
+            <h2>💻 Technical Questions</h2>
+            {% for q in data.technical_questions %}
+            <div class="question-card">
+                <div class="question">{{ q.question }} <span class="badge {{ q.difficulty }}">{{ q.difficulty }}</span></div>
+                <div class="answer-guide">{{ q.answer_guide }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.behavioral_questions %}
+        <div class="section">
+            <h2>🤝 Behavioral Questions (STAR Method)</h2>
+            {% for q in data.behavioral_questions %}
+            <div class="question-card">
+                <div class="category">{{ q.category }}</div>
+                <div class="question">{{ q.question }}</div>
+                <div class="answer-guide">{{ q.answer_guide }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.company_questions %}
+        <div class="section">
+            <h2>🏢 Company-Specific Questions</h2>
+            {% for q in data.company_questions %}
+            <div class="question-card">
+                <div class="question">{{ q.question }}</div>
+                <div class="answer-guide"><strong>Why they ask:</strong> {{ q.why_ask }}<br><strong>Good answer:</strong> {{ q.good_answer }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.your_questions %}
+        <div class="section">
+            <h2>❓ Questions You Can Ask</h2>
+            {% for q in data.your_questions %}
+            <div class="question-card">
+                <div class="question">{{ q.question }}</div>
+                <div class="answer-guide"><strong>Purpose:</strong> {{ q.purpose }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if data.tips %}
+        <div class="section">
+            <h2>💡 Interview Tips</h2>
+            {% for tip in data.tips %}
+            <div class="tip-card">
+                <h4>✓ Tip {{ loop.index }}</h4>
+                <p>{{ tip }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <a href="/" class="btn">New Optimization</a>
+            <a href="/tracker" class="btn secondary">Track Application</a>
+        </div>
+    </div>
+</body>
+</html>
