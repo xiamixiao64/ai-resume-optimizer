@@ -28,8 +28,11 @@ def init_supabase():
     url = os.environ.get('SUPABASE_URL', '')
     key = os.environ.get('SUPABASE_KEY', '')
     if url and key:
-        from supabase import create_client
-        supabase = create_client(url, key)
+        try:
+            from supabase import create_client
+            supabase = create_client(url, key)
+        except Exception as e:
+            logger.warning(f"Failed to connect to Supabase: {e}. Using in-memory storage.")
     return supabase
 
 
