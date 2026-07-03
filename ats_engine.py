@@ -221,7 +221,7 @@ class ATSEngine:
         return improvements[:8]  # 最多返回 8 条建议
 
     def check_formatting(self, resume_text: str) -> dict:
-        """Check resume formatting compatibility.
+        """Check resume formatting compatibility with 30+ checks.
 
         Args:
             resume_text: Resume content text.
@@ -231,37 +231,273 @@ class ATSEngine:
         """
         score = 100
         issues = []
+        checks_passed = 0
+        total_checks = 30
 
-        # 检查标准章节标题
+        # 1. Section headers check
         found_headers = [h for h in STANDARD_HEADERS if h in resume_text.lower()]
-        if len(found_headers) < 2:
+        if len(found_headers) >= 2:
+            checks_passed += 1
+        else:
             score -= 15
             issues.append("缺少标准章节标题（Experience, Education, Skills）")
 
-        # 检查联系方式格式
-        if not re.search(EMAIL_PATTERN, resume_text):
+        # 2. Email format
+        if re.search(EMAIL_PATTERN, resume_text):
+            checks_passed += 1
+        else:
             score -= 10
             issues.append("缺少有效的电子邮件地址")
 
-        if not re.search(PHONE_PATTERN, resume_text):
+        # 3. Phone format
+        if re.search(PHONE_PATTERN, resume_text):
+            checks_passed += 1
+        else:
             score -= 10
             issues.append("缺少有效的电话号码")
 
-        # 检查是否使用表格格式（制表符）
-        if '\t' in resume_text:
+        # 4. No tabs
+        if '\t' not in resume_text:
+            checks_passed += 1
+        else:
             score -= 5
             issues.append("使用了制表符，可能影响 ATS 解析")
 
-        # 检查关键词密度（简单估算）
+        # 5. Word count
         words = resume_text.split()
-        if len(words) < 20:
+        if 20 <= len(words) <= 1000:
+            checks_passed += 1
+        elif len(words) < 20:
             score -= 10
             issues.append("简历内容过短，建议至少 20 词")
-        elif len(words) > 1000:
+        else:
             score -= 5
             issues.append("简历内容过长，建议控制在 1000 词以内")
 
-        return {"score": max(0, score), "issues": issues}
+        # 6. No special characters
+        special_chars = re.findall(r'[!@#$%^&*()_+={}\[\]|\\:";<>?`~]', resume_text)
+        if len(special_chars) < 5:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("包含过多特殊字符，可能影响 ATS 解析")
+
+        # 7. Standard fonts check (detect non-standard)
+        non_standard_fonts = ['comic sans', 'papyrus', 'wingdings']
+        has_non_standard = any(f in resume_text.lower() for f in non_standard_fonts)
+        if not has_non_standard:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("使用了非标准字体，建议使用 Arial、Calibri 或 Times New Roman")
+
+        # 8. Single column check (detect multi-column indicators)
+        multi_column_indicators = ['│', '┃', '║', 'column', 'sidebar']
+        has_multi_column = any(ind in resume_text for ind in multi_column_indicators)
+        if not has_multi_column:
+            checks_passed += 1
+        else:
+            score -= 8
+            issues.append("检测到多列布局，ATS 可能无法正确解析")
+
+        # 9. No tables
+        table_indicators = ['│', '┃', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼']
+        has_tables = any(ind in resume_text for ind in table_indicators)
+        if not has_tables:
+            checks_passed += 1
+        else:
+            score -= 8
+            issues.append("检测到表格格式，ATS 无法解析表格内容")
+
+        # 10. No images/graphics indicators
+        image_indicators = ['![', '<img', 'image:', 'figure:']
+        has_images = any(ind in resume_text.lower() for ind in image_indicators)
+        if not has_images:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("检测到图片引用，ATS 无法解析图片内容")
+
+        # 11. Contact info not in header/footer
+        lines = resume_text.split('\n')
+        first_line = lines[0].lower() if lines else ''
+        last_line = lines[-1].lower() if lines else ''
+        contact_in_body = any(re.search(EMAIL_PATTERN, line) for line in lines[1:-1])
+        if contact_in_body or not first_line.startswith('[') and not last_line.startswith('['):
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("联系方式可能在页眉/页脚中，ATS 无法读取")
+
+        # 12. Reverse chronological order
+        years = re.findall(r'20\d{2}', resume_text)
+        if len(years) >= 2:
+            if int(years[0]) >= int(years[-1]):
+                checks_passed += 1
+            else:
+                score -= 3
+                issues.append("建议按时间倒序排列工作经历")
+        else:
+            checks_passed += 1
+
+        # 13. Spell check (basic)
+        common_misspelling = ['recieve', 'seperate', 'occured', 'definately', 'accomodate']
+        has_misspelling = any(m in resume_text.lower() for m in common_misspelling)
+        if not has_misspelling:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("检测到拼写错误，请检查拼写")
+
+        # 14. No abbreviations without full terms
+        abbreviations = ['AI', 'ML', 'UX', 'UI', 'SEO', 'API']
+        for abbr in abbreviations:
+            if abbr in resume_text and f'({abbr})' not in resume_text:
+                score -= 1
+                issues.append(f"建议先写出全称再使用缩写 {abbr}")
+                break
+        else:
+            checks_passed += 1
+
+        # 15. Date format consistency
+        date_formats = re.findall(r'\d{1,2}/\d{1,2}/\d{2,4}|\d{4}-\d{2}-\d{2}|\w+ \d{4}', resume_text)
+        if len(date_formats) > 0:
+            checks_passed += 1
+        else:
+            score -= 2
+            issues.append("建议使用一致的日期格式")
+
+        # 16. Professional summary present
+        summary_indicators = ['summary', 'objective', 'profile', 'about']
+        has_summary = any(ind in resume_text.lower() for ind in summary_indicators)
+        if has_summary:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("建议添加专业摘要（Professional Summary）")
+
+        # 17. Skills section present
+        has_skills = 'skills' in resume_text.lower()
+        if has_skills:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("建议添加技能列表（Skills）")
+
+        # 18. Education section present
+        has_education = 'education' in resume_text.lower()
+        if has_education:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("建议添加教育背景（Education）")
+
+        # 19. Experience section present
+        has_experience = any(ind in resume_text.lower() for ind in ['experience', 'work history', 'employment'])
+        if has_experience:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("建议添加工作经历（Experience）")
+
+        # 20. No personal information beyond contact
+        personal_info = ['birthday', 'date of birth', 'age', 'marital status', 'religion', 'gender']
+        has_personal = any(info in resume_text.lower() for info in personal_info)
+        if not has_personal:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("包含个人信息（生日/年龄/婚姻状况），ATS 可能会过滤")
+
+        # 21. No references section
+        has_references = 'references' in resume_text.lower()
+        if not has_references:
+            checks_passed += 1
+        else:
+            score -= 2
+            issues.append("不需要包含推荐人信息，节省空间")
+
+        # 22. Bullet points format
+        bullet_lines = [l for l in lines if l.strip().startswith(('- ', '• ', '* '))]
+        if len(bullet_lines) > 0:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("建议使用项目符号（bullet points）格式化内容")
+
+        # 23. No email in header/footer
+        if not first_line.endswith('.com') and not last_line.endswith('.com'):
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("邮箱地址应放在正文区域，而非页眉/页脚")
+
+        # 24. LinkedIn URL format
+        if 'linkedin.com' in resume_text.lower():
+            checks_passed += 1
+        else:
+            score -= 2
+            issues.append("建议添加 LinkedIn 个人主页链接")
+
+        # 25. Consistent date format
+        date_patterns = re.findall(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}', resume_text)
+        if len(date_patterns) > 0 or len(date_formats) > 0:
+            checks_passed += 1
+        else:
+            score -= 2
+            issues.append("建议使用一致的日期格式（如：Jan 2024）")
+
+        # 26. No personal pronouns
+        pronouns = ['i ', 'i\'m', 'my ', 'me ']
+        has_pronouns = any(p in resume_text.lower().split() for p in pronouns)
+        if not has_pronouns:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("建议避免使用第一人称代词（I, my, me）")
+
+        # 27. Action verbs at start
+        strong_verbs = ['led', 'built', 'managed', 'developed', 'implemented', 'created', 'improved']
+        lines_with_verbs = [l for l in lines if any(l.lower().startswith(v) for v in strong_verbs)]
+        if len(lines_with_verbs) >= 3:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("建议以行动动词开头（如：Led, Built, Improved）")
+
+        # 28. Quantified achievements
+        quantified = re.findall(r'\d+%|\$[\d,]+|\d+ (users|customers|projects|team|employees)', resume_text)
+        if len(quantified) >= 2:
+            checks_passed += 1
+        else:
+            score -= 5
+            issues.append("建议添加量化数据（百分比、金额、用户数）")
+
+        # 29. No colors in text
+        color_indicators = ['color:', 'rgb(', '#', 'font color']
+        has_colors = any(ind in resume_text.lower() for ind in color_indicators)
+        if not has_colors:
+            checks_passed += 1
+        else:
+            score -= 3
+            issues.append("避免使用彩色文字，ATS 可能无法正确读取")
+
+        # 30. Page length appropriate
+        line_count = len(lines)
+        if 20 <= line_count <= 100:
+            checks_passed += 1
+        elif line_count < 20:
+            score -= 3
+            issues.append("简历内容较少，建议补充更多细节")
+        else:
+            score -= 2
+            issues.append("简历较长，建议精简到 1-2 页")
+
+        # Calculate final score based on checks passed
+        check_score = (checks_passed / total_checks) * 100
+        final_score = min(score, check_score)
+
+        return {"score": max(0, int(final_score)), "issues": issues, "checks_passed": checks_passed, "total_checks": total_checks}
 
     def check_keywords(self, resume_text: str, jd_text: str) -> dict:
         """Check keyword matching between resume and job description.

@@ -471,6 +471,41 @@
                 status.textContent = 'Upload failed. Please paste your resume.';
             }
         }
+
+        // Onboarding modal
+        function showOnboarding() {
+            if (!localStorage.getItem('onboarding_complete')) {
+                document.getElementById('onboardingModal').classList.add('active');
+            }
+        }
+        function closeOnboarding() {
+            document.getElementById('onboardingModal').classList.remove('active');
+            localStorage.setItem('onboarding_complete', 'true');
+        }
+        showOnboarding();
     </script>
+
+    <!-- Onboarding Modal -->
+    <div id="onboardingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:#1a1a1a; border-radius:16px; padding:40px; max-width:500px; width:90%; text-align:center;">
+            <h2 style="color:#a855f7; margin-bottom:16px;">Welcome to ResumeForge AI!</h2>
+            <p style="color:#888; margin-bottom:24px;">Here's how to get started in 3 steps:</p>
+            <div style="text-align:left; margin-bottom:24px;">
+                <div style="display:flex; gap:16px; margin-bottom:16px;">
+                    <div style="background:#6366f1; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">1</div>
+                    <div><strong style="color:#fff;">Paste your resume</strong><br><span style="color:#888; font-size:0.9rem;">Copy your resume content into the text box</span></div>
+                </div>
+                <div style="display:flex; gap:16px; margin-bottom:16px;">
+                    <div style="background:#a855f7; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">2</div>
+                    <div><strong style="color:#fff;">Add job description</strong><br><span style="color:#888; font-size:0.9rem;">Paste the job description for targeted optimization</span></div>
+                </div>
+                <div style="display:flex; gap:16px;">
+                    <div style="background:#ec4899; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</div>
+                    <div><strong style="color:#fff;">Get your ATS score</strong><br><span style="color:#888; font-size:0.9rem;">Receive instant feedback and optimized resume</span></div>
+                </div>
+            </div>
+            <button onclick="closeOnboarding()" style="background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; border:none; padding:14px 32px; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">Let's Go!</button>
+        </div>
+    </div>
 </body>
 </html>
