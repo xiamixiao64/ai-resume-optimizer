@@ -248,6 +248,7 @@
             <div class="btn-group">
                 <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
                 <form action="/export/pdf" method="POST" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="resume_content" id="resumeContent" value="{{ data.optimized_resume }}">
                     <select name="template" style="padding:8px;border-radius:6px;background:#1a1a1a;color:#e0e0e0;border:1px solid #333;margin-right:8px">
                         <option value="modern">Modern</option>

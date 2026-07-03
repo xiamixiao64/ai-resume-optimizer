@@ -177,6 +177,7 @@
             </div>
 
             <form id="optimizeForm" action="/optimize" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="mode" id="modeInput" value="optimize">
                 <label>Paste Your Resume *</label>
                 <textarea name="resume_text" id="resumeText" placeholder="Paste your resume content here...&#10;&#10;Or upload a PDF above to auto-fill." required></textarea>
