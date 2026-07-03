@@ -236,3 +236,66 @@ def submit_feedback():
     logger.info(f"Feedback received: {feedback[:100]}... (page={page}, score={score})")
 
     return jsonify({'status': 'ok', 'message': 'Thank you for your feedback!'})
+
+
+# ==================== ATS Detector ====================
+
+@features_bp.route('/ats-detector')
+def ats_detector_page():
+    """ATS Type Detector - Detect which ATS system a job posting uses"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('ats_detector.html', user=user)
+
+
+@features_bp.route('/api/ats/detect', methods=['POST'])
+def detect_ats():
+    """Detect ATS type from job description URL or text"""
+    data = request.json
+    job_description = data.get('job_description', '')
+    job_url = data.get('job_url', '')
+
+    if not job_description and not job_url:
+        return jsonify({'error': 'Please provide job description text or URL'}), 400
+
+    # Import ATSEngine for ATS detection
+    from ats_engine import ATSEngine
+    engine = ATSEngine()
+
+    # If URL provided, try to fetch the job description
+    if job_url and not job_description:
+        try:
+            import requests
+            resp = requests.get(job_url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            if resp.status_code == 200:
+                job_description = resp.text[:5000]  # Limit to 5000 chars
+        except Exception as e:
+            logger.error(f"Failed to fetch URL: {e}")
+            return jsonify({'error': 'Failed to fetch job description from URL'}), 400
+
+    # Detect ATS type
+    ats_result = engine.identify_ats(job_description)
+
+    # Get all supported ATS types for reference
+    all_ats_types = []
+    for ats_name, config in engine.ats_patterns.items():
+        all_ats_types.append({
+            'name': ats_name,
+            'patterns': config['patterns'][:3],  # Show first 3 patterns
+            'tips': config['tips']
+        })
+
+    # Track event
+    user_id = get_user_id()
+    if user_id:
+        track_event(user_id, 'ats_detect', {
+            'detected_type': ats_result['type'],
+            'has_url': bool(job_url)
+        })
+
+    return jsonify({
+        'detected': ats_result,
+        'all_supported': all_ats_types,
+        'tips': ats_result.get('tips', [])
+    })

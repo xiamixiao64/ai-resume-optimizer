@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Type Detector - Find Out Which ATS Your Job Uses | ResumeForge AI</title>
+    <meta name="description" content="Free ATS type detector. Paste a job description to find out which Applicant Tracking System (Workday, Taleo, Greenhouse, etc.) the company uses and get specific optimization tips.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+        .subtitle { color: #888; font-size: 1.1rem; margin-bottom: 40px; }
+        .input-section { background: #1a1a1a; border-radius: 16px; padding: 30px; margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; color: #a855f7; font-weight: 600; margin-bottom: 8px; }
+        textarea { width: 100%; height: 200px; background: #0a0a0a; border: 2px solid #333; border-radius: 12px; padding: 16px; color: #fff; font-size: 1rem; resize: vertical; }
+        textarea:focus { outline: none; border-color: #a855f7; }
+        input[type="url"] { width: 100%; background: #0a0a0a; border: 2px solid #333; border-radius: 12px; padding: 16px; color: #fff; font-size: 1rem; }
+        input[type="url"]:focus { outline: none; border-color: #a855f7; }
+        .or-divider { text-align: center; color: #666; margin: 20px 0; }
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 16px 32px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-section { display: none; background: #1a1a1a; border-radius: 16px; padding: 30px; margin-top: 30px; }
+        .result-section.active { display: block; }
+        .ats-type { font-size: 1.8rem; font-weight: 700; color: #a855f7; margin-bottom: 16px; }
+        .confidence { color: #888; margin-bottom: 20px; }
+        .tips-list { list-style: none; }
+        .tips-list li { padding: 12px 0; border-bottom: 1px solid #333; display: flex; align-items: flex-start; gap: 12px; }
+        .tips-list li:before { content: "✓"; color: #22c55e; font-weight: bold; }
+        .all-ats { margin-top: 40px; }
+        .ats-card { background: #0a0a0a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .ats-card h3 { color: #a855f7; margin-bottom: 8px; }
+        .ats-card p { color: #888; font-size: 0.9rem; }
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
+        .spinner { border: 4px solid #333; border-top: 4px solid #a855f7; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { color: #ef4444; margin-top: 16px; display: none; }
+        .error.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 ATS Type Detector</h1>
+        <p class="subtitle">Find out which Applicant Tracking System a company uses and get specific optimization tips.</p>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label>Paste Job Description</label>
+                <textarea id="jobDescription" placeholder="Paste the full job description here..."></textarea>
+            </div>
+
+            <div class="or-divider">— OR —</div>
+
+            <div class="input-group">
+                <label>Enter Job Posting URL</label>
+                <input type="url" id="jobUrl" placeholder="https://careers.company.com/job/...">
+            </div>
+
+            <button class="btn" id="detectBtn" onclick="detectATS()">Detect ATS Type</button>
+            <p class="error" id="error"></p>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing job posting...</p>
+        </div>
+
+        <div class="result-section" id="result">
+            <h2>Detected ATS System</h2>
+            <div class="ats-type" id="atsType">—</div>
+            <p class="confidence" id="confidence"></p>
+            
+            <h3 style="margin-bottom: 16px;">Optimization Tips for This ATS:</h3>
+            <ul class="tips-list" id="tips"></ul>
+        </div>
+
+        <div class="all-ats" id="allAts" style="display: none;">
+            <h2 style="margin-bottom: 20px;">All Supported ATS Systems</h2>
+            <div id="atsCards"></div>
+        </div>
+    </div>
+
+    <script>
+        async function detectATS() {
+            const jobDescription = document.getElementById('jobDescription').value;
+            const jobUrl = document.getElementById('jobUrl').value;
+
+            if (!jobDescription && !jobUrl) {
+                showError('Please provide a job description or URL');
+                return;
+            }
+
+            document.getElementById('detectBtn').disabled = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+
+            try {
+                const response = await fetch('/api/ats/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_description: jobDescription, job_url: jobUrl })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                // Show detected ATS
+                document.getElementById('atsType').textContent = data.detected.type === 'unknown' ? 'Generic ATS' : data.detected.type.charAt(0).toUpperCase() + data.detected.type.slice(1);
+                document.getElementById('confidence').textContent = data.detected.confidence > 0 ? `Confidence: ${Math.round(data.detected.confidence * 100)}%` : 'Could not identify specific ATS';
+
+                // Show tips
+                const tipsList = document.getElementById('tips');
+                tipsList.innerHTML = '';
+                data.tips.forEach(tip => {
+                    const li = document.createElement('li');
+                    li.textContent = tip;
+                    tipsList.appendChild(li);
+                });
+
+                // Show all supported ATS types
+                const atsCards = document.getElementById('atsCards');
+                atsCards.innerHTML = '';
+                data.all_supported.forEach(ats => {
+                    const card = document.createElement('div');
+                    card.className = 'ats-card';
+                    card.innerHTML = `
+                        <h3>${ats.name.charAt(0).toUpperCase() + ats.name.slice(1)}</h3>
+                        <p>${ats.tips[0]}</p>
+                    `;
+                    atsCards.appendChild(card);
+                });
+
+                document.getElementById('result').classList.add('active');
+                document.getElementById('allAts').style.display = 'block';
+
+            } catch (err) {
+                showError('Failed to detect ATS type. Please try again.');
+            } finally {
+                document.getElementById('detectBtn').disabled = false;
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        function showError(msg) {
+            const error = document.getElementById('error');
+            error.textContent = msg;
+            error.classList.add('active');
+        }
+    </script>
+</body>
+</html>
