@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - ResumeForge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+        h1 { font-size: 2.5rem; font-weight: 800; text-align: center; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+        .subtitle { text-align: center; color: #888; font-size: 1.1rem; margin-bottom: 50px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+        .pricing-card { background: #1a1a1a; border-radius: 16px; padding: 32px; border: 2px solid #333; transition: transform 0.2s, border-color 0.2s; }
+        .pricing-card:hover { transform: translateY(-4px); }
+        .pricing-card.popular { border-color: #a855f7; position: relative; }
+        .pricing-card.popular::before { content: 'MOST POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .pricing-card.lifetime { border-color: #22c55e; }
+        .pricing-card.lifetime::before { content: 'BEST VALUE'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .plan-name { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+        .plan-desc { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
+        .price { font-size: 3rem; font-weight: 800; margin-bottom: 8px; }
+        .price .currency { font-size: 1.5rem; vertical-align: top; }
+        .price .period { font-size: 1rem; color: #888; font-weight: 400; }
+        .price-note { color: #666; font-size: 0.85rem; margin-bottom: 24px; }
+        .features { list-style: none; margin-bottom: 24px; }
+        .features li { padding: 10px 0; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; }
+        .features li:last-child { border-bottom: none; }
+        .features .check { color: #22c55e; font-weight: bold; }
+        .features .cross { color: #666; }
+        .cta-btn { width: 100%; padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; transition: opacity 0.2s; }
+        .cta-btn:hover { opacity: 0.9; }
+        .cta-btn.primary { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; }
+        .cta-btn.success { background: #22c55e; color: #fff; }
+        .cta-btn.secondary { background: #333; color: #fff; border: 1px solid #555; }
+        .guarantee { text-align: center; padding: 40px 20px; background: #1a1a1a; border-radius: 16px; margin-top: 40px; }
+        .guarantee h3 { color: #22c55e; margin-bottom: 12px; }
+        .guarantee p { color: #888; max-width: 600px; margin: 0 auto; }
+        .faq-section { margin-top: 60px; }
+        .faq-section h2 { text-align: center; margin-bottom: 30px; }
+        .faq-item { background: #1a1a1a; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-q { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .faq-q:hover { background: #222; }
+        .faq-a { padding: 0 20px 20px; color: #888; line-height: 1.6; display: none; }
+        .faq-item.open .faq-a { display: block; }
+        .faq-item.open .faq-q span { transform: rotate(180deg); }
+        .faq-q span { transition: transform 0.2s; }
+        @media (max-width: 768px) { .pricing-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple, Transparent Pricing</h1>
+        <p class="subtitle">Start free, upgrade when you're ready. No hidden fees.</p>
+
+        <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Free</div>
+                <div class="plan-desc">Perfect for trying out</div>
+                <div class="price"><span class="currency">$</span>0</div>
+                <div class="price-note">Free forever</div>
+                <ul class="features">
+                    <li><span class="check">✓</span> 3 resume optimizations</li>
+                    <li><span class="check">✓</span> ATS score analysis</li>
+                    <li><span class="check">✓</span> Keyword matching</li>
+                    <li><span class="check">✓</span> ATS type detection</li>
+                    <li><span class="cross">✗</span> Interview preparation</li>
+                    <li><span class="cross">✗</span> Salary estimation</li>
+                    <li><span class="cross">✗</span> PDF export</li>
+                </ul>
+                <a href="/register" class="cta-btn secondary">Get Started Free</a>
+            </div>
+
+            <!-- Pro Monthly -->
+            <div class="pricing-card popular">
+                <div class="plan-name">Pro</div>
+                <div class="plan-desc">For active job seekers</div>
+                <div class="price"><span class="currency">$</span>9.9<span class="period">/month</span></div>
+                <div class="price-note">Billed monthly</div>
+                <ul class="features">
+                    <li><span class="check">✓</span> Unlimited optimizations</li>
+                    <li><span class="check">✓</span> ATS score analysis</li>
+                    <li><span class="check">✓</span> Keyword matching</li>
+                    <li><span class="check">✓</span> ATS type detection</li>
+                    <li><span class="check">✓</span> Interview preparation</li>
+                    <li><span class="check">✓</span> Salary estimation</li>
+                    <li><span class="check">✓</span> PDF export</li>
+                </ul>
+                <button class="cta-btn primary" onclick="checkout('monthly')">Start Pro Plan</button>
+            </div>
+
+            <!-- Lifetime -->
+            <div class="pricing-card lifetime">
+                <div class="plan-name">Lifetime</div>
+                <div class="plan-desc">One-time payment, forever</div>
+                <div class="price"><span class="currency">$</span>149</div>
+                <div class="price-note">Pay once, use forever</div>
+                <ul class="features">
+                    <li><span class="check">✓</span> Everything in Pro</li>
+                    <li><span class="check">✓</span> Lifetime access</li>
+                    <li><span class="check">✓</span> All future features</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> Early access to new features</li>
+                    <li><span class="check">✓</span> Commercial license</li>
+                    <li><span class="check">✓</span> Save $100+ vs monthly</li>
+                </ul>
+                <button class="cta-btn success" onclick="checkout('lifetime')">Get Lifetime Access</button>
+            </div>
+        </div>
+
+        <div class="guarantee">
+            <h3>30-Day Money-Back Guarantee</h3>
+            <p>Try Risk-Free. If you're not satisfied, we'll refund you within 30 days. No questions asked.</p>
+        </div>
+
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item open">
+                <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's included in the free plan? <span>▼</span></div>
+                <div class="faq-a">The free plan includes 3 resume optimizations with ATS scoring, keyword matching, and ATS type detection. It's perfect for trying out the tool before committing.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can I switch between plans? <span>▼</span></div>
+                <div class="faq-a">Yes! You can upgrade or downgrade at any time. When upgrading, you'll get immediate access to all features. When downgrading, your current billing period will complete.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What payment methods do you accept? <span>▼</span></div>
+                <div class="faq-a">We accept all major credit cards, PayPal, and Apple Pay through our secure payment processor LemonSqueezy.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Is my data secure? <span>▼</span></div>
+                <div class="faq-a">Absolutely. Your resume is processed in real-time and never stored on our servers. We use industry-standard encryption and comply with GDPR regulations.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's the difference between Pro and Lifetime? <span>▼</span></div>
+                <div class="faq-a">Pro is a monthly subscription at $9.9/month. Lifetime is a one-time payment of $149 that gives you permanent access to all current and future features. Lifetime saves you over $100 compared to 12 months of Pro.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkout(plan) {
+            try {
+                const resp = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan: plan })
+                });
+                const data = await resp.json();
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Payment system not configured. Please try again later.');
+                }
+            } catch (e) {
+                alert('Error creating checkout. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

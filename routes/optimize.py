@@ -440,7 +440,13 @@ TARGET JOB:
         "improvements_count": len(data.get("improvements", []))
     }
 
-    track_event(user_id, 'optimize_complete', {'mode': mode, 'score': data.get("ats_score", 0)})
+    track_event(user_id, 'optimize_complete', {
+        'mode': mode,
+        'score': data.get("ats_score", 0),
+        'has_job_description': bool(job_description),
+        'resume_length': len(resume_text),
+        'improvements_count': len(data.get("improvements", []))
+    })
     save_history({
         'id': proof_id, 'user_id': user_id,
         'resume_text': resume_text[:2000], 'job_description': jd[:1000],
@@ -582,6 +588,37 @@ def track_event_api():
         track_event(user_id, event_type, event_data)
 
     return jsonify({'status': 'ok'})
+
+
+@optimize_bp.route('/api/analytics/modes')
+def get_mode_analytics():
+    """Get mode usage analytics (admin only)"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    from services.storage import get_admin_stats
+    stats = get_admin_stats()
+
+    # Count mode usage from events
+    mode_counts = {}
+    for event in stats.get('event_counts', {}):
+        if 'optimize' in event:
+            mode = event.split('_')[-1] if '_' in event else 'unknown'
+            mode_counts[mode] = stats['event_counts'][event]
+
+    return jsonify({
+        'total_users': stats['total_users'],
+        'total_events': stats['total_events'],
+        'mode_usage': mode_counts
+    })
+
+
+@optimize_bp.route('/pricing')
+def pricing_page():
+    """Pricing page with multiple tiers"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('pricing.html', user=user)
 
 
 @optimize_bp.route('/api/create-checkout', methods=['POST'])

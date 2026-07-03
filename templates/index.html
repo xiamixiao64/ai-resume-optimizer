@@ -114,14 +114,13 @@
             {% if user %}
             <a href="/ats-detector">ATS Detector</a>
             <a href="/tracker">Tracker</a>
-            <a href="/jobs">Find Jobs</a>
-            <a href="/linkedin">LinkedIn</a>
-            <a href="/templates">Templates</a>
+            <a href="/pricing">Pricing</a>
             <a href="/history">History</a>
             <span class="user-email">{{ user.email }}</span>
             <a href="/logout">Logout</a>
             {% else %}
             <a href="/ats-detector">ATS Detector</a>
+            <a href="/pricing">Pricing</a>
             <a href="/login">Login</a>
             <a href="/register">Register</a>
             {% endif %}
@@ -142,6 +141,8 @@
             <div class="feature"><div class="icon">🔍</div><h3>ATS Type Detector</h3><p>Find which ATS the company uses</p></div>
             <div class="feature"><div class="icon">🔑</div><h3>Keyword Match</h3><p>Find missing keywords for your role</p></div>
             <div class="feature"><div class="icon">✨</div><h3>Smart Rewrite</h3><p>AI-optimized bullets & content</p></div>
+            <div class="feature"><div class="icon">🎤</div><h3>Interview Prep</h3><p>Generate questions based on resume</p></div>
+            <div class="feature"><div class="icon">💰</div><h3>Salary Estimation</h3><p>Know your market value</p></div>
         </div>
 
         <div class="card">
@@ -166,6 +167,7 @@
                     <span class="icon">💰</span>Salary
                 </div>
             </div>
+            <p style="text-align:center;color:#666;font-size:0.8rem;margin-top:8px">💡 Tip: Paste job description for best results</p>
 
             <div id="uploadSection" style="margin-bottom:20px; padding:20px; background:#1a1a1a; border:2px dashed #333; border-radius:10px; text-align:center;">
                 <p style="color:#888;margin-bottom:12px">Or upload your PDF resume</p>
