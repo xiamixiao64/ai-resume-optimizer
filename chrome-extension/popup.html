@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeForge AI - ATS Checker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { width: 380px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; }
+        .header { background: linear-gradient(135deg, #6366f1, #a855f7); padding: 20px; text-align: center; }
+        .header h1 { font-size: 1.2rem; color: #fff; margin-bottom: 4px; }
+        .header p { font-size: 0.8rem; color: rgba(255,255,255,0.8); }
+        .content { padding: 20px; }
+        .ats-badge { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center; }
+        .ats-badge.detected { border: 2px solid #22c55e; }
+        .ats-badge.unknown { border: 2px solid #666; }
+        .ats-type { font-size: 1.5rem; font-weight: 700; color: #a855f7; margin-bottom: 4px; }
+        .ats-type.unknown { color: #666; }
+        .ats-label { font-size: 0.8rem; color: #888; }
+        .section { margin-bottom: 16px; }
+        .section-title { font-size: 0.9rem; font-weight: 600; color: #a855f7; margin-bottom: 8px; }
+        .tip-item { background: #1a1a1a; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-size: 0.85rem; line-height: 1.4; }
+        .tip-item:before { content: "✓ "; color: #22c55e; font-weight: bold; }
+        .btn { width: 100%; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 12px; }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: #1a1a1a; border: 1px solid #333; }
+        .loading { text-align: center; padding: 20px; color: #888; }
+        .footer { text-align: center; padding: 12px; font-size: 0.75rem; color: #555; border-top: 1px solid #222; }
+        .footer a { color: #a855f7; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 ResumeForge AI</h1>
+        <p>ATS Type Detector</p>
+    </div>
+
+    <div class="content">
+        <div class="ats-badge" id="atsBadge">
+            <div class="ats-type" id="atsType">Detecting...</div>
+            <div class="ats-label" id="atsLabel">Analyzing current page</div>
+        </div>
+
+        <div class="section" id="tipsSection" style="display: none;">
+            <div class="section-title">Optimization Tips</div>
+            <div id="tipsList"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Check Your Resume</div>
+            <textarea id="resumeInput" placeholder="Paste your resume here..." style="width: 100%; height: 100px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 0.85rem; resize: vertical;"></textarea>
+            <button class="btn" onclick="checkResume()">Check ATS Score</button>
+        </div>
+
+        <button class="btn secondary" onclick="openFullTool()">Open Full Tool →</button>
+    </div>
+
+    <div class="footer">
+        Powered by <a href="https://resumeforge.ai" target="_blank">ResumeForge AI</a>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

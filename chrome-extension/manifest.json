@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ResumeForge AI - ATS Resume Checker",
+  "version": "1.0.0",
+  "description": "Check your resume against ATS systems directly from job posting pages. Detect which ATS (Workday, Taleo, Greenhouse, etc.) the company uses.",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.workday.com/*", "*://*.myworkdayjobs.com/*", "*://*.taleo.*/*", "*://*.greenhouse.io/*", "*://*.lever.co/*", "*://*.icims.com/*", "*://*.smartrecruiters.com/*", "*://*.bamboohr.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
