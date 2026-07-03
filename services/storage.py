@@ -32,10 +32,8 @@ def init_supabase():
     return supabase
 
 
-def hash_password(password):
-    """Hash password with bcrypt. Raises RuntimeError if bcrypt unavailable."""
-    if not HAS_BCRYPT:
-        raise RuntimeError("bcrypt is required for password hashing. Install with: pip install bcrypt")
+def hash_password(password: str) -> str:
+    """Hash password with bcrypt."""
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
@@ -49,8 +47,15 @@ def verify_password(stored, provided):
 
 # ==================== User Management ====================
 
-def get_user_by_id(user_id):
-    """Get user by ID"""
+def get_user_by_id(user_id: str) -> dict | None:
+    """Get user by ID.
+
+    Args:
+        user_id: The unique user identifier.
+
+    Returns:
+        User dictionary, or None if not found.
+    """
     if supabase:
         try:
             result = supabase.table('users').select('*').eq('id', user_id).execute()
@@ -61,16 +66,28 @@ def get_user_by_id(user_id):
     return _memory_users.get(user_id)
 
 
-def get_user_id():
-    """Get current logged-in user ID from session"""
+def get_user_id() -> str | None:
+    """Get current logged-in user ID from session.
+
+    Returns:
+        User ID if logged in, None otherwise.
+    """
     user_id = session.get('user_id')
     if user_id and get_user_by_id(user_id):
         return user_id
     return None
 
 
-def register_user(email, password):
-    """Register new user, returns (user_id, error)"""
+def register_user(email: str, password: str) -> tuple:
+    """Register new user.
+
+    Args:
+        email: User email address.
+        password: User password.
+
+    Returns:
+        Tuple of (user_id, error_message). user_id is None if registration fails.
+    """
     if supabase:
         result = supabase.table('users').select('id').eq('email', email).execute()
         if result.data and len(result.data) > 0:
@@ -93,8 +110,16 @@ def register_user(email, password):
         return user_id, None
 
 
-def login_user(email, password):
-    """Login user, returns (user_id, error)"""
+def login_user(email: str, password: str) -> tuple:
+    """Login user.
+
+    Args:
+        email: User email address.
+        password: User password.
+
+    Returns:
+        Tuple of (user_id, error_message). user_id is None if login fails.
+    """
     if supabase:
         result = supabase.table('users').select('*').eq('email', email).execute()
         if not result.data or len(result.data) == 0:
@@ -112,8 +137,15 @@ def login_user(email, password):
         return None, "Invalid email or password"
 
 
-def get_user_usage(user_id):
-    """Get user's optimization count"""
+def get_user_usage(user_id: str) -> int:
+    """Get user's optimization count.
+
+    Args:
+        user_id: The unique user identifier.
+
+    Returns:
+        Number of optimizations used.
+    """
     if supabase:
         result = supabase.table('users').select('usage_count').eq('id', user_id).execute()
         if result.data and len(result.data) > 0:
@@ -121,8 +153,15 @@ def get_user_usage(user_id):
     return _memory_users.get(user_id, {}).get('usage_count', 0)
 
 
-def is_pro_user(user_id):
-    """Check if user has pro subscription"""
+def is_pro_user(user_id: str) -> bool:
+    """Check if user has pro subscription.
+
+    Args:
+        user_id: The unique user identifier.
+
+    Returns:
+        True if user has pro status, False otherwise.
+    """
     if supabase:
         result = supabase.table('users').select('is_pro').eq('id', user_id).execute()
         if result.data and len(result.data) > 0:
@@ -130,8 +169,12 @@ def is_pro_user(user_id):
     return _memory_users.get(user_id, {}).get('is_pro', False)
 
 
-def increment_usage(user_id):
-    """Increment user's usage count"""
+def increment_usage(user_id: str) -> None:
+    """Increment user's usage count.
+
+    Args:
+        user_id: The unique user identifier.
+    """
     current = get_user_usage(user_id)
     new_count = current + 1
     if supabase:
@@ -140,8 +183,15 @@ def increment_usage(user_id):
         _memory_users[user_id]['usage_count'] = new_count
 
 
-def check_usage_limit(user_id):
-    """Check if user has exceeded free tier"""
+def check_usage_limit(user_id: str | None) -> bool:
+    """Check if user has exceeded free tier.
+
+    Args:
+        user_id: The unique user identifier, or None.
+
+    Returns:
+        True if user can use more optimizations, False otherwise.
+    """
     if not user_id:
         return False
     if is_pro_user(user_id):
@@ -149,8 +199,13 @@ def check_usage_limit(user_id):
     return get_user_usage(user_id) < FREE_OPTIMIZATIONS
 
 
-def set_pro_status(user_id, status=True):
-    """Set user's pro status"""
+def set_pro_status(user_id: str, status: bool = True) -> None:
+    """Set user's pro status.
+
+    Args:
+        user_id: The unique user identifier.
+        status: True to enable pro, False to disable.
+    """
     if supabase:
         supabase.table('users').update({'is_pro': status}).eq('id', user_id).execute()
     elif user_id in _memory_users:
@@ -159,8 +214,14 @@ def set_pro_status(user_id, status=True):
 
 # ==================== Event Tracking ====================
 
-def track_event(user_id, event_type, event_data=None):
-    """Track user event"""
+def track_event(user_id: str, event_type: str, event_data: dict = None) -> None:
+    """Track user event.
+
+    Args:
+        user_id: The unique user identifier.
+        event_type: Type of event (e.g., 'page_view', 'optimize_start').
+        event_data: Optional event metadata.
+    """
     if supabase:
         try:
             supabase.table('events').insert({

@@ -11,8 +11,16 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
-def call_ai(prompt, system_msg="You are an expert resume optimizer and career coach."):
-    """Call Groq AI API"""
+def call_ai(prompt: str, system_msg: str = "You are an expert resume optimizer and career coach.") -> str | None:
+    """Call Groq AI API for resume optimization.
+
+    Args:
+        prompt: The user prompt to send to the AI.
+        system_msg: System message defining AI behavior.
+
+    Returns:
+        AI response text, or None if the call fails.
+    """
     try:
         resp = std_requests.post(
             GROQ_URL,
@@ -51,8 +59,15 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
     return None
 
 
-def parse_ai_json(result):
-    """Extract JSON from AI response, handling markdown code blocks"""
+def parse_ai_json(result: str | None) -> dict:
+    """Extract JSON from AI response, handling markdown code blocks.
+
+    Args:
+        result: AI response text that may contain JSON.
+
+    Returns:
+        Parsed JSON as dictionary, or empty dict if parsing fails.
+    """
     import html as html_lib
     import re
 
@@ -74,8 +89,15 @@ def parse_ai_json(result):
     return {}
 
 
-def parse_pdf(file):
-    """Extract text from PDF file"""
+def parse_pdf(file) -> str:
+    """Extract text from PDF file.
+
+    Args:
+        file: PDF file object.
+
+    Returns:
+        Extracted text content, or error message if parsing fails.
+    """
     try:
         import pdfplumber
         with pdfplumber.open(file) as pdf:

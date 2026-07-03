@@ -27,8 +27,16 @@ LEMONSQUEEZY_STORE_ID = os.environ.get('LEMONSQUEEZY_STORE_ID', '')
 LEMONSQUEEZY_VARIANT_ID = os.environ.get('LEMONSQUEEZY_VARIANT_ID', '')
 
 
-def expand_skills(skills, job_description):
-    """Expand skills list based on job description keywords"""
+def expand_skills(skills: list, job_description: str) -> list:
+    """Expand skills list based on job description keywords.
+
+    Args:
+        skills: Current list of skills.
+        job_description: Job description text to extract keywords from.
+
+    Returns:
+        Expanded list of skills including matched keywords.
+    """
     if not skills:
         skills = []
     if job_description:
@@ -43,8 +51,15 @@ def expand_skills(skills, job_description):
     return skills
 
 
-def format_structured_resume(data):
-    """Format structured resume data into readable text"""
+def format_structured_resume(data: dict) -> str:
+    """Format structured resume data into readable text.
+
+    Args:
+        data: Dictionary containing resume sections (name, contact, summary, etc.)
+
+    Returns:
+        Formatted resume text.
+    """
     lines = []
     if data.get("name"):
         lines.append(data["name"])

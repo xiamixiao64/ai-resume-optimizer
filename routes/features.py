@@ -19,7 +19,15 @@ _ab_tests = {
 }
 
 
-def get_ab_variant(test_name):
+def get_ab_variant(test_name: str) -> str:
+    """Get A/B test variant for a given test name.
+
+    Args:
+        test_name: The name of the A/B test.
+
+    Returns:
+        The variant identifier ('A' or 'B').
+    """
     session_key = f'ab_{test_name}'
     if session_key in session:
         return session[session_key]
@@ -37,6 +45,7 @@ def get_ab_variant(test_name):
 
 @features_bp.route('/jobs')
 def jobs_page():
+    """Render the jobs matching page."""
     user = get_user_by_id(session.get('user_id'))
     if not user:
         return redirect(url_for('auth.register'))
@@ -45,6 +54,11 @@ def jobs_page():
 
 @features_bp.route('/api/jobs/match', methods=['POST'])
 def match_jobs():
+    """Match resume against job listings using AI.
+
+    Returns:
+        JSON with matched jobs, match scores, and skill gaps.
+    """
     user_id = get_user_id()
     if not user_id:
         return jsonify({'error': 'Please register/login first'}), 401
@@ -88,6 +102,7 @@ Rules:
 
 @features_bp.route('/linkedin')
 def linkedin_page():
+    """Render the LinkedIn optimization page."""
     user = get_user_by_id(session.get('user_id'))
     if not user:
         return redirect(url_for('auth.register'))
@@ -96,6 +111,11 @@ def linkedin_page():
 
 @features_bp.route('/api/linkedin/optimize', methods=['POST'])
 def optimize_linkedin():
+    """Optimize LinkedIn profile for better visibility.
+
+    Returns:
+        JSON with optimized headline, about section, and experience bullets.
+    """
     user_id = get_user_id()
     if not user_id:
         return jsonify({'error': 'Please register/login first'}), 401

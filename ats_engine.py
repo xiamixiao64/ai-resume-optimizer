@@ -118,8 +118,16 @@ class ATSEngine:
             "contact": 10
         }
     
-    def analyze(self, resume_text, jd_text):
-        """分析简历的 ATS 兼容性"""
+    def analyze(self, resume_text: str, jd_text: str) -> dict:
+        """Analyze resume for ATS compatibility.
+
+        Args:
+            resume_text: Resume content text.
+            jd_text: Job description text.
+
+        Returns:
+            Dictionary with ATS score, breakdown, improvements, and ATS type.
+        """
         # 执行所有检查
         formatting = self.check_formatting(resume_text)
         keywords = self.check_keywords(resume_text, jd_text)
@@ -163,8 +171,24 @@ class ATSEngine:
             "ats_type": ats_type
         }
 
-    def _generate_improvements(self, formatting, keywords, semantic, experience, education, contact, portfolio, ats_type):
-        """生成改进建议"""
+    def _generate_improvements(self, formatting: dict, keywords: dict, semantic: dict,
+                               experience: dict, education: dict, contact: dict,
+                               portfolio: dict, ats_type: dict) -> list:
+        """Generate improvement suggestions based on analysis results.
+
+        Args:
+            formatting: Formatting check results.
+            keywords: Keyword matching results.
+            semantic: Semantic matching results.
+            experience: Experience check results.
+            education: Education check results.
+            contact: Contact check results.
+            portfolio: Portfolio check results.
+            ats_type: ATS type detection results.
+
+        Returns:
+            List of improvement suggestions.
+        """
         improvements = []
 
         # 按优先级添加建议
@@ -196,8 +220,15 @@ class ATSEngine:
 
         return improvements[:8]  # 最多返回 8 条建议
 
-    def check_formatting(self, resume_text):
-        """检查简历格式兼容性"""
+    def check_formatting(self, resume_text: str) -> dict:
+        """Check resume formatting compatibility.
+
+        Args:
+            resume_text: Resume content text.
+
+        Returns:
+            Dictionary with score and issues list.
+        """
         score = 100
         issues = []
 
@@ -232,8 +263,16 @@ class ATSEngine:
 
         return {"score": max(0, score), "issues": issues}
 
-    def check_keywords(self, resume_text, jd_text):
-        """检查关键词匹配度"""
+    def check_keywords(self, resume_text: str, jd_text: str) -> dict:
+        """Check keyword matching between resume and job description.
+
+        Args:
+            resume_text: Resume content text.
+            jd_text: Job description text.
+
+        Returns:
+            Dictionary with score, matched keywords, and missing keywords.
+        """
         jd_keywords = self._extract_keywords(jd_text)
         resume_lower = resume_text.lower()
 
@@ -261,8 +300,15 @@ class ATSEngine:
             "missing": missing
         }
 
-    def _extract_keywords(self, text):
-        """从文本中提取关键词"""
+    def _extract_keywords(self, text: str) -> list:
+        """Extract keywords from text.
+
+        Args:
+            text: Text to extract keywords from.
+
+        Returns:
+            List of found keywords.
+        """
         all_keywords = TECH_KEYWORDS + SOFT_KEYWORDS
         text_lower = text.lower()
 
@@ -329,8 +375,15 @@ class ATSEngine:
             "related_missing": related_missing
         }
 
-    def check_experience(self, resume_text):
-        """检查工作经验质量"""
+    def check_experience(self, resume_text: str) -> dict:
+        """Check work experience quality.
+
+        Args:
+            resume_text: Resume content text.
+
+        Returns:
+            Dictionary with score, issues list, and X-Y-Z format count.
+        """
         score = 100
         issues = []
 
@@ -394,8 +447,15 @@ class ATSEngine:
 
         return {"score": max(0, score), "issues": issues, "xyz_count": xyz_formatted}
 
-    def _extract_bullets(self, text):
-        """提取 bullet points"""
+    def _extract_bullets(self, text: str) -> list:
+        """Extract bullet points from resume text.
+
+        Args:
+            text: Resume content text.
+
+        Returns:
+            List of bullet point strings.
+        """
         bullets = []
         lines = text.split('\n')
         in_experience = False
@@ -423,8 +483,15 @@ class ATSEngine:
 
         return bullets
 
-    def check_education(self, resume_text):
-        """检查教育背景"""
+    def check_education(self, resume_text: str) -> dict:
+        """Check education background.
+
+        Args:
+            resume_text: Resume content text.
+
+        Returns:
+            Dictionary with score and issues list.
+        """
         score = 100
         issues = []
 
@@ -483,8 +550,15 @@ class ATSEngine:
 
         return {"score": score, "issues": issues}
 
-    def identify_ats(self, jd_text):
-        """从 JD 识别 ATS 类型"""
+    def identify_ats(self, jd_text: str) -> dict:
+        """Identify ATS type from job description.
+
+        Args:
+            jd_text: Job description text.
+
+        Returns:
+            Dictionary with ATS type, confidence, and tips.
+        """
         jd_lower = jd_text.lower()
 
         for ats_name, config in self.ats_patterns.items():
@@ -506,8 +580,15 @@ class ATSEngine:
             ]
         }
 
-    def check_portfolio(self, resume_text):
-        """检查作品集和在线链接"""
+    def check_portfolio(self, resume_text: str) -> dict:
+        """Check for portfolio and online links.
+
+        Args:
+            resume_text: Resume content text.
+
+        Returns:
+            Dictionary with score, issues list, and found links.
+        """
         score = 0
         issues = []
         found_links = []
