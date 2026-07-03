@@ -173,7 +173,16 @@
 
     <script>
         function openAddModal() {
-            document.getElementById('addModal').classList.add('active');
+            console.log('Opening modal...');
+            const modal = document.getElementById('addModal');
+            console.log('Modal element:', modal);
+            if (modal) {
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+                console.log('Modal should be visible now');
+            } else {
+                console.error('Modal not found!');
+            }
         }
 
         function openEditModal(id, status, notes) {
@@ -269,6 +278,16 @@
         function refreshList() {
             location.reload();
         }
+
+        // Debug: Log when page loads
+        console.log('Tracker page loaded');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            const btn = document.querySelector('.btn');
+            if (btn) {
+                console.log('Button found:', btn.textContent);
+            }
+        });
     </script>
 </body>
 </html>
