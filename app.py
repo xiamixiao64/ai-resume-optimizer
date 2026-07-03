@@ -26,16 +26,8 @@ logger = logging.getLogger(__name__)
 
 # CSRF Protection (disabled in development mode)
 CSRF_ENABLED = os.environ.get('CSRF_ENABLED', 'true').lower() == 'true'
-if CSRF_ENABLED:
-    csrf = CSRFProtect(app)
-    # Exempt API endpoints from CSRF
-    csrf.exempt(app.view_functions['optimize.upload_file'])
-    csrf.exempt(app.view_functions['optimize.optimize'])
-    csrf.exempt(app.view_functions['optimize.api_optimize'])
-    csrf.exempt(app.view_functions['optimize.track_event_api'])
-    csrf.exempt(app.view_functions['features.match_jobs'])
-    csrf.exempt(app.view_functions['features.optimize_linkedin'])
-else:
+csrf = CSRFProtect(app) if CSRF_ENABLED else None
+if not CSRF_ENABLED:
     logger.warning("CSRF protection is DISABLED - use only in development!")
 
 # Initialize storage
@@ -54,6 +46,11 @@ app.register_blueprint(optimize_bp)
 app.register_blueprint(features_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(seo_bp)
+
+# Exempt API endpoints from CSRF (must be after blueprint registration)
+if csrf:
+    csrf.exempt(optimize_bp)
+    csrf.exempt(features_bp)
 
 # Apply rate limits to auth routes
 app.view_functions['auth.login'] = limiter.limit("5 per minute")(app.view_functions['auth.login'])
