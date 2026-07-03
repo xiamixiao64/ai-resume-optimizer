@@ -299,3 +299,129 @@ def detect_ats():
         'all_supported': all_ats_types,
         'tips': ats_result.get('tips', [])
     })
+
+
+# ==================== Job Application Tracking ====================
+
+@features_bp.route('/tracker')
+def tracker_page():
+    """Job Application Tracker page"""
+    user = get_user_id()
+    if not user:
+        return redirect(url_for('auth.register'))
+    
+    from services.storage import get_user_job_applications, get_job_application_stats
+    applications = get_user_job_applications(user)
+    stats = get_job_application_stats(user)
+    
+    return render_template('tracker.html', user=get_user_by_id(user), applications=applications, stats=stats)
+
+
+@features_bp.route('/api/tracker/applications', methods=['GET'])
+def get_applications():
+    """Get all job applications for current user"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    from services.storage import get_user_job_applications
+    applications = get_user_job_applications(user_id)
+    return jsonify({'applications': applications})
+
+
+@features_bp.route('/api/tracker/applications', methods=['POST'])
+def add_application():
+    """Add a new job application"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.json
+    company = data.get('company', '').strip()
+    position = data.get('position', '').strip()
+    job_url = data.get('job_url', '').strip()
+    notes = data.get('notes', '').strip()
+    
+    if not company or not position:
+        return jsonify({'error': 'Company and position are required'}), 400
+    
+    import uuid
+    import datetime
+    
+    application = {
+        'id': str(uuid.uuid4())[:8],
+        'user_id': user_id,
+        'company': company,
+        'position': position,
+        'job_url': job_url,
+        'notes': notes,
+        'status': 'applied',
+        'ats_score': data.get('ats_score'),
+        'created_at': datetime.datetime.now().isoformat(),
+        'updated_at': datetime.datetime.now().isoformat()
+    }
+    
+    from services.storage import save_job_application, track_event
+    save_job_application(application)
+    track_event(user_id, 'job_application_added', {'company': company, 'position': position})
+    
+    return jsonify({'application': application})
+
+
+@features_bp.route('/api/tracker/applications/<application_id>', methods=['PUT'])
+def update_application(application_id):
+    """Update a job application"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.json
+    updates = {}
+    
+    if 'status' in data:
+        updates['status'] = data['status']
+    if 'notes' in data:
+        updates['notes'] = data['notes']
+    if 'ats_score' in data:
+        updates['ats_score'] = data['ats_score']
+    
+    import datetime
+    updates['updated_at'] = datetime.datetime.now().isoformat()
+    
+    from services.storage import update_job_application, get_job_application
+    app = get_job_application(application_id, user_id)
+    if not app:
+        return jsonify({'error': 'Application not found'}), 404
+    
+    update_job_application(application_id, user_id, updates)
+    
+    return jsonify({'status': 'ok'})
+
+
+@features_bp.route('/api/tracker/applications/<application_id>', methods=['DELETE'])
+def delete_application(application_id):
+    """Delete a job application"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    from services.storage import delete_job_application, get_job_application
+    app = get_job_application(application_id, user_id)
+    if not app:
+        return jsonify({'error': 'Application not found'}), 404
+    
+    delete_job_application(application_id, user_id)
+    
+    return jsonify({'status': 'ok'})
+
+
+@features_bp.route('/api/tracker/stats', methods=['GET'])
+def get_tracker_stats():
+    """Get job application statistics"""
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    from services.storage import get_job_application_stats
+    stats = get_job_application_stats(user_id)
+    return jsonify(stats)

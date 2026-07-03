@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker | ResumeForge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: #1a1a1a; border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #a855f7; }
+        .stat-label { font-size: 0.85rem; color: #888; margin-top: 4px; }
+        .actions { display: flex; gap: 12px; margin-bottom: 30px; }
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: #1a1a1a; border: 1px solid #333; }
+        .table-container { background: #1a1a1a; border-radius: 12px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #222; padding: 16px; text-align: left; font-weight: 600; color: #a855f7; }
+        td { padding: 16px; border-bottom: 1px solid #333; }
+        tr:hover { background: #222; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status.applied { background: #3b82f6; color: #fff; }
+        .status.responded { background: #22c55e; color: #fff; }
+        .status.interview { background: #a855f7; color: #fff; }
+        .status.offer { background: #22c55e; color: #fff; }
+        .status.rejected { background: #ef4444; color: #fff; }
+        .status.withdrawn { background: #666; color: #fff; }
+        .actions-cell { display: flex; gap: 8px; }
+        .action-btn { background: none; border: 1px solid #333; color: #888; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .action-btn:hover { border-color: #a855f7; color: #a855f7; }
+        .action-btn.delete:hover { border-color: #ef4444; color: #ef4444; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1a1a1a; border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; }
+        .modal h2 { margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #a855f7; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; background: #0a0a0a; border: 2px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 0.95rem; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #a855f7; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #666; }
+        .empty-state h3 { margin-bottom: 12px; color: #888; }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Job Application Tracker</h1>
+        <p class="subtitle">Track your job applications and monitor your progress</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalApps">{{ stats.total }}</div>
+                <div class="stat-label">Total Applications</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="responseRate">{{ stats.response_rate }}%</div>
+                <div class="stat-label">Response Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="interviewRate">{{ stats.interview_rate }}%</div>
+                <div class="stat-label">Interview Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">{{ stats.by_status.get('applied', 0) }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn" onclick="openAddModal()">+ Add Application</button>
+            <button class="btn secondary" onclick="refreshList()">Refresh</button>
+        </div>
+
+        <div class="table-container">
+            {% if applications %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Position</th>
+                        <th>Status</th>
+                        <th>ATS Score</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="applicationsList">
+                    {% for app in applications %}
+                    <tr data-id="{{ app.id }}">
+                        <td><strong>{{ app.company }}</strong></td>
+                        <td>{{ app.position }}</td>
+                        <td><span class="status {{ app.status }}">{{ app.status }}</span></td>
+                        <td>{{ app.ats_score or '-' }}</td>
+                        <td>{{ app.created_at[:10] }}</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="action-btn" onclick="openEditModal('{{ app.id }}', '{{ app.status }}', '{{ app.notes }}')">Edit</button>
+                                <button class="action-btn delete" onclick="deleteApp('{{ app.id }}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No applications yet</h3>
+                <p>Start tracking your job applications by clicking "Add Application"</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h2>Add Job Application</h2>
+            <div class="form-group">
+                <label>Company *</label>
+                <input type="text" id="addCompany" placeholder="e.g., Google">
+            </div>
+            <div class="form-group">
+                <label>Position *</label>
+                <input type="text" id="addPosition" placeholder="e.g., Software Engineer">
+            </div>
+            <div class="form-group">
+                <label>Job URL</label>
+                <input type="url" id="addUrl" placeholder="https://careers.google.com/...">
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="addNotes" rows="3" placeholder="Any notes about this application..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="addApplication()">Add</button>
+                <button class="btn secondary" onclick="closeModals()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h2>Update Application</h2>
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editStatus">
+                    <option value="applied">Applied</option>
+                    <option value="responded">Responded</option>
+                    <option value="interview">Interview</option>
+                    <option value="offer">Offer</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="withdrawn">Withdrawn</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="editNotes" rows="3" placeholder="Update notes..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="updateApplication()">Update</button>
+                <button class="btn secondary" onclick="closeModals()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function openEditModal(id, status, notes) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('editNotes').value = notes || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModals() {
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        async function addApplication() {
+            const company = document.getElementById('addCompany').value.trim();
+            const position = document.getElementById('addPosition').value.trim();
+            const job_url = document.getElementById('addUrl').value.trim();
+            const notes = document.getElementById('addNotes').value.trim();
+
+            if (!company || !position) {
+                alert('Company and position are required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tracker/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company, position, job_url, notes })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                closeModals();
+                location.reload();
+            } catch (err) {
+                alert('Failed to add application');
+            }
+        }
+
+        async function updateApplication() {
+            const id = document.getElementById('editId').value;
+            const status = document.getElementById('editStatus').value;
+            const notes = document.getElementById('editNotes').value.trim();
+
+            try {
+                const response = await fetch(`/api/tracker/applications/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, notes })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                closeModals();
+                location.reload();
+            } catch (err) {
+                alert('Failed to update application');
+            }
+        }
+
+        async function deleteApp(id) {
+            if (!confirm('Are you sure you want to delete this application?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tracker/applications/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                location.reload();
+            } catch (err) {
+                alert('Failed to delete application');
+            }
+        }
+
+        function refreshList() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

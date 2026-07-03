@@ -280,3 +280,99 @@ def get_admin_stats():
         'daily_events': daily,
         'free_optimizations': FREE_OPTIMIZATIONS
     }
+
+
+# ==================== Job Application Tracking ====================
+
+# In-memory storage for job applications
+_job_applications = []
+
+
+def save_job_application(application):
+    """Save a job application record"""
+    if supabase:
+        try:
+            supabase.table('job_applications').insert(application).execute()
+        except Exception as e:
+            logger.error(f"Job application save failed: {e}")
+    _job_applications.append(application)
+
+
+def get_user_job_applications(user_id, limit=100):
+    """Get user's job applications"""
+    if supabase:
+        try:
+            result = supabase.table('job_applications').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(limit).execute()
+            return result.data
+        except Exception as e:
+            logger.error(f"Job applications fetch failed: {e}")
+    records = [r for r in _job_applications if r['user_id'] == user_id]
+    records.sort(key=lambda x: x['created_at'], reverse=True)
+    return records[:limit]
+
+
+def get_job_application(application_id, user_id):
+    """Get single job application"""
+    if supabase:
+        try:
+            result = supabase.table('job_applications').select('*').eq('id', application_id).eq('user_id', user_id).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            logger.error(f"Job application fetch failed: {e}")
+    return next((r for r in _job_applications if r['id'] == application_id and r['user_id'] == user_id), None)
+
+
+def update_job_application(application_id, user_id, updates):
+    """Update a job application"""
+    if supabase:
+        try:
+            supabase.table('job_applications').update(updates).eq('id', application_id).eq('user_id', user_id).execute()
+        except Exception as e:
+            logger.error(f"Job application update failed: {e}")
+    else:
+        for app in _job_applications:
+            if app['id'] == application_id and app['user_id'] == user_id:
+                app.update(updates)
+                break
+
+
+def delete_job_application(application_id, user_id):
+    """Delete a job application"""
+    if supabase:
+        try:
+            supabase.table('job_applications').delete().eq('id', application_id).eq('user_id', user_id).execute()
+        except Exception as e:
+            logger.error(f"Job application delete failed: {e}")
+    global _job_applications
+    _job_applications = [r for r in _job_applications if not (r['id'] == application_id and r['user_id'] == user_id)]
+
+
+def get_job_application_stats(user_id):
+    """Get job application statistics"""
+    apps = get_user_job_applications(user_id, limit=1000)
+    
+    stats = {
+        'total': len(apps),
+        'by_status': {},
+        'response_rate': 0,
+        'interview_rate': 0
+    }
+    
+    responded = 0
+    interviews = 0
+    
+    for app in apps:
+        status = app.get('status', 'applied')
+        stats['by_status'][status] = stats['by_status'].get(status, 0) + 1
+        
+        if status in ['responded', 'interview', 'offer', 'rejected']:
+            responded += 1
+        if status in ['interview', 'offer']:
+            interviews += 1
+    
+    if stats['total'] > 0:
+        stats['response_rate'] = round(responded / stats['total'] * 100, 1)
+        stats['interview_rate'] = round(interviews / stats['total'] * 100, 1)
+    
+    return stats
