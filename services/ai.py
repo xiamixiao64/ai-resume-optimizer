@@ -31,7 +31,14 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
             },
             timeout=60
         )
-        data = resp.json()
+        if resp.status_code != 200:
+            logger.error(f"Groq API HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+        try:
+            data = resp.json()
+        except ValueError:
+            logger.error(f"Groq API returned non-JSON: {resp.text[:200]}")
+            return None
         if "choices" in data and len(data["choices"]) > 0:
             return data["choices"][0]["message"]["content"]
         elif "error" in data:
@@ -41,20 +48,16 @@ def call_ai(prompt, system_msg="You are an expert resume optimizer and career co
     except Exception as e:
         logger.error(f"AI call failed: {e}")
 
-    return json.dumps({
-        "error": "AI service temporarily unavailable",
-        "ats_score": 0,
-        "optimized_resume": "API temporarily unavailable.",
-        "improvements": [],
-        "keyword_match": [],
-        "missing_keywords": []
-    })
+    return None
 
 
 def parse_ai_json(result):
     """Extract JSON from AI response, handling markdown code blocks"""
     import html as html_lib
     import re
+
+    if not result:
+        return {}
 
     result = result.strip()
     result = html_lib.unescape(result)

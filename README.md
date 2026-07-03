@@ -9,7 +9,7 @@ AI-powered resume optimizer that beats ATS systems.
 - AI-Powered Resume Rewrite
 - Job Description Targeting
 - One-Click Copy
-- Free tier (3 optimizations)
+- Free tier (5 optimizations)
 - Pro subscription ($9.9/month)
 
 ## Quick Start

@@ -16,6 +16,7 @@ from services.storage import (
     get_user_usage, is_pro_user, set_pro_status, track_event, save_history,
     FREE_OPTIMIZATIONS
 )
+from services.constants import TECH_KEYWORDS_DISPLAY, DEFAULT_SKILLS, EMAIL_PATTERN, PHONE_PATTERN
 
 logger = logging.getLogger(__name__)
 optimize_bp = Blueprint('optimize', __name__)
@@ -30,22 +31,13 @@ def expand_skills(skills, job_description):
     """Expand skills list based on job description keywords"""
     if not skills:
         skills = []
-    tech_keywords = [
-        "Python", "Java", "JavaScript", "TypeScript", "React", "Vue", "Angular",
-        "Node.js", "Django", "Flask", "Spring", "Spring Boot", "Express",
-        "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite",
-        "Docker", "Kubernetes", "AWS", "Azure", "GCP", "CI/CD",
-        "Git", "GitHub", "GitLab", "REST API", "GraphQL", "Microservices",
-        "Agile", "Scrum", "TDD", "Linux", "Nginx", "Apache"
-    ]
     if job_description:
         jd_lower = job_description.lower()
-        for skill in tech_keywords:
+        for skill in TECH_KEYWORDS_DISPLAY:
             if skill.lower() in jd_lower and skill not in skills:
                 skills.append(skill)
     if len(skills) < 8:
-        defaults = ["Python", "JavaScript", "SQL", "Git", "REST APIs", "Agile", "Problem Solving", "Team Collaboration"]
-        for skill in defaults:
+        for skill in DEFAULT_SKILLS:
             if skill not in skills and len(skills) < 8:
                 skills.append(skill)
     return skills
@@ -415,7 +407,7 @@ def export_pdf():
             if len(parts) > 1:
                 html_body += f"<p class='dates'>{html_lib.escape(' | '.join(parts[1:]))}</p>"
         else:
-            if '@' in line or 'linkedin' in line.lower() or 'phone' in line.lower():
+            if re.search(EMAIL_PATTERN, line) or 'linkedin' in line.lower() or 'phone' in line.lower():
                 html_body += f"<p class='contact'>{html_lib.escape(line)}</p>"
             else:
                 html_body += f"<p>{html_lib.escape(line)}</p>"
@@ -427,7 +419,7 @@ def export_pdf():
 <style>{template_css}</style>
 </head><body>
 <div class="resume-template template-{template}">
-{html_content}
+{html_body}
 </div></body></html>"""
 
     try:
@@ -459,13 +451,9 @@ def api_optimize():
     increment_usage(user_id)
     prompt = "Optimize this resume. Return JSON with: ats_score, optimized_resume, improvements, keyword_match, missing_keywords.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + (job_description or "N/A")
     result = call_ai(prompt)
-    try:
-        result = result.strip()
-        if result.startswith("```"):
-            result = result.split("\n", 1)[1].rsplit("```", 1)[0]
-        parsed = json.loads(result)
-    except (json.JSONDecodeError, ValueError):
-        parsed = {"ats_score": 65, "optimized_resume": result, "improvements": []}
+    parsed = parse_ai_json(result)
+    if not parsed:
+        parsed = {"ats_score": 65, "optimized_resume": "", "improvements": []}
     return jsonify(parsed)
 
 

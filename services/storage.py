@@ -1,7 +1,6 @@
 """Storage service - Supabase with in-memory fallback"""
 import os
 import uuid
-import hashlib
 import datetime
 import logging
 from flask import session
@@ -19,11 +18,7 @@ _history = []
 # Config
 FREE_OPTIMIZATIONS = 5
 
-try:
-    import bcrypt
-    HAS_BCRYPT = True
-except ImportError:
-    HAS_BCRYPT = False
+import bcrypt
 
 
 def init_supabase():
@@ -38,22 +33,18 @@ def init_supabase():
 
 
 def hash_password(password):
-    """Hash password with bcrypt or SHA-256 fallback"""
-    if HAS_BCRYPT:
-        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    salt = uuid.uuid4().hex
-    return 'sha256:' + hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+    """Hash password with bcrypt. Raises RuntimeError if bcrypt unavailable."""
+    if not HAS_BCRYPT:
+        raise RuntimeError("bcrypt is required for password hashing. Install with: pip install bcrypt")
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(stored, provided):
-    """Verify password against stored hash"""
-    if stored.startswith('$2b$') or stored.startswith('$2a$'):
-        return bcrypt.checkpw(provided.encode(), stored.encode())
-    try:
-        prefix, password, salt = stored.split(':')
-        return hashlib.sha256(salt.encode() + provided.encode()).hexdigest() == password
-    except ValueError:
+    """Verify password against stored bcrypt hash"""
+    if not (stored.startswith('$2b$') or stored.startswith('$2a$')):
+        logger.error("Invalid password hash format - only bcrypt supported")
         return False
+    return bcrypt.checkpw(provided.encode(), stored.encode())
 
 
 # ==================== User Management ====================
@@ -84,7 +75,7 @@ def register_user(email, password):
         result = supabase.table('users').select('id').eq('email', email).execute()
         if result.data and len(result.data) > 0:
             return None, "Email already registered"
-        user_id = str(uuid.uuid4())[:8]
+        user_id = str(uuid.uuid4())
         supabase.table('users').insert({
             'id': user_id, 'email': email, 'password': hash_password(password),
             'usage_count': 0, 'is_pro': False
@@ -94,7 +85,7 @@ def register_user(email, password):
         for uid, u in _memory_users.items():
             if u['email'] == email:
                 return None, "Email already registered"
-        user_id = str(uuid.uuid4())[:8]
+        user_id = str(uuid.uuid4())
         _memory_users[user_id] = {
             'id': user_id, 'email': email, 'password': hash_password(password),
             'usage_count': 0, 'is_pro': False

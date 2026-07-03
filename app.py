@@ -12,7 +12,9 @@ load_dotenv()
 
 # App setup
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+app.secret_key = os.environ.get('FLASK_SECRET_KEY')
+if not app.secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
@@ -57,9 +59,10 @@ def set_security_headers(response):
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
     return response
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug_mode, port=5000)
