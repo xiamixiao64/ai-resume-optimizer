@@ -22,8 +22,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 
 # Extensions
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day"])
-csrf = CSRFProtect(app)
 logger = logging.getLogger(__name__)
+
+# CSRF Protection (disabled in development mode)
+CSRF_ENABLED = os.environ.get('CSRF_ENABLED', 'true').lower() == 'true'
+if CSRF_ENABLED:
+    csrf = CSRFProtect(app)
+else:
+    logger.warning("CSRF protection is DISABLED - use only in development!")
 
 # Initialize storage
 from services.storage import init_supabase
@@ -59,7 +65,7 @@ def set_security_headers(response):
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     return response
 
 
