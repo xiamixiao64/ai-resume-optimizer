@@ -2,6 +2,7 @@
 import os
 import json
 import logging
+from typing import Optional
 import requests as std_requests
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
-def call_ai(prompt: str, system_msg: str = "You are an expert resume optimizer and career coach.") -> str | None:
+def call_ai(prompt: str, system_msg: str = "You are an expert resume optimizer and career coach.") -> Optional[str]:
     """Call Groq AI API for resume optimization.
 
     Args:
@@ -59,7 +60,7 @@ def call_ai(prompt: str, system_msg: str = "You are an expert resume optimizer a
     return None
 
 
-def parse_ai_json(result: str | None) -> dict:
+def parse_ai_json(result: Optional[str]) -> dict:
     """Extract JSON from AI response, handling markdown code blocks.
 
     Args:

@@ -3,6 +3,7 @@ import os
 import uuid
 import datetime
 import logging
+from typing import Optional, Tuple
 from flask import session
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def verify_password(stored, provided):
 
 # ==================== User Management ====================
 
-def get_user_by_id(user_id: str) -> dict | None:
+def get_user_by_id(user_id: str) -> Optional[dict]:
     """Get user by ID.
 
     Args:
@@ -66,7 +67,7 @@ def get_user_by_id(user_id: str) -> dict | None:
     return _memory_users.get(user_id)
 
 
-def get_user_id() -> str | None:
+def get_user_id() -> Optional[str]:
     """Get current logged-in user ID from session.
 
     Returns:
@@ -78,7 +79,7 @@ def get_user_id() -> str | None:
     return None
 
 
-def register_user(email: str, password: str) -> tuple:
+def register_user(email: str, password: str) -> Tuple[Optional[str], Optional[str]]:
     """Register new user.
 
     Args:
@@ -110,7 +111,7 @@ def register_user(email: str, password: str) -> tuple:
         return user_id, None
 
 
-def login_user(email: str, password: str) -> tuple:
+def login_user(email: str, password: str) -> Tuple[Optional[str], Optional[str]]:
     """Login user.
 
     Args:
@@ -183,7 +184,7 @@ def increment_usage(user_id: str) -> None:
         _memory_users[user_id]['usage_count'] = new_count
 
 
-def check_usage_limit(user_id: str | None) -> bool:
+def check_usage_limit(user_id: Optional[str]) -> bool:
     """Check if user has exceeded free tier.
 
     Args:
