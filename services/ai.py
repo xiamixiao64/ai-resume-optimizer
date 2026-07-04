@@ -289,25 +289,29 @@ def validate_no_fabrication(original_text: str, optimized_text: str) -> str:
     """
     import re
 
-    # Extract numbers from original
+    # Extract ALL numbers from original text
     original_numbers = set(re.findall(r'\d+', original_text))
-
-    # Find numbers in optimized text that weren't in original
-    optimized_numbers = re.findall(r'\d+', optimized_text)
+    original_percentages = set(re.findall(r'(\d+)%', original_text))
+    original_dollars = set(re.findall(r'\$[\d,]+', optimized_text))
 
     # Check for fabricated percentages
     percentages = re.findall(r'(\d+)%', optimized_text)
     for pct in percentages:
-        if pct not in original_numbers and f"{pct}%" not in original_text:
-            # This percentage might be fabricated
+        if pct not in original_percentages and pct not in original_numbers:
             optimized_text = optimized_text.replace(f"{pct}%", "[USER_DATA]")
 
     # Check for fabricated dollar amounts
     dollar_amounts = re.findall(r'\$[\d,]+', optimized_text)
     for amt in dollar_amounts:
         clean_amt = amt.replace('$', '').replace(',', '')
-        if clean_amt not in original_numbers and amt not in original_text:
+        if clean_amt not in original_numbers and amt not in original_dollars:
             optimized_text = optimized_text.replace(amt, "[USER_DATA]")
+
+    # Check for fabricated user counts
+    user_counts = re.findall(r'(\d+)\s*(users|customers|employees|team)', optimized_text, re.IGNORECASE)
+    for count, unit in user_counts:
+        if count not in original_numbers:
+            optimized_text = optimized_text.replace(f"{count} {unit}", f"[USER_DATA] {unit}")
 
     return optimized_text
 

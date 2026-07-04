@@ -462,14 +462,15 @@ TARGET JOB:
 
 严格规则：
 1. 保持原始结构和公司名称不变
-2. 如果简历中已有量化数据，保持原样不要修改
+2. 【最重要】绝对不要修改任何数字！保留所有百分比、金额、用户数等数字原样不动
 3. 如果简历中没有量化数据，不要编造——改为建议用户添加
-4. 使用有力动词：Led, Built, Increased, Reduced, Delivered, Launched
-5. 添加JD中的相关关键词（包括软技能：teamwork, communication, leadership）
-6. bullet点以行动动词开头
-7. 每个bullet说明具体改了什么、为什么改
-8. score_breakdown 各维度 0-100 分，必须包含所有4个维度
-9. 软技能关键词必须翻译成英文：teamwork, communication, leadership, problem-solving"""
+4. 只优化非数字内容：动词、句式结构、关键词
+5. 使用有力动词：Led, Built, Increased, Reduced, Delivered, Launched
+6. 添加JD中的相关关键词（包括软技能：teamwork, communication, leadership）
+7. bullet点以行动动词开头
+8. 每个bullet说明具体改了什么、为什么改
+9. score_breakdown 各维度 0-100 分，必须包含所有4个维度
+10. 软技能关键词必须翻译成英文：teamwork, communication, leadership, problem-solving"""
         system_msg = "You are an expert ATS optimization specialist. Return strict JSON only. ALL keywords MUST be in English, never translate to Chinese."
         data = parse_ai_json(call_ai(prompt, system_msg))
 
