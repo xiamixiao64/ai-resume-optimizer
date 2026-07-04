@@ -208,6 +208,38 @@ def upload_file():
     return jsonify({'resume_text': text, 'filename': file.filename})
 
 
+@optimize_bp.route('/api/free-scan', methods=['POST'])
+def free_scan():
+    """Free ATS scan without authentication - returns basic scoring only."""
+    resume_text = request.form.get('resume_text', '')
+    job_description = request.form.get('job_description', '')
+
+    if not resume_text:
+        return jsonify({'error': 'Please paste your resume'}), 400
+
+    # Run basic ATS analysis without AI
+    jd = job_description or "N/A"
+    ats_result = ats_engine.analyze(resume_text, jd)
+
+    # Return basic results without full optimization
+    return jsonify({
+        'ats_score': ats_result['ats_score'],
+        'score_breakdown': {
+            'keyword_match': ats_result['breakdown']['keywords']['score'],
+            'formatting': ats_result['breakdown']['formatting']['score'],
+            'experience_quality': ats_result['breakdown']['experience']['score'],
+            'education_relevance': ats_result['breakdown']['education']['score']
+        },
+        'matched_keywords': ats_result['breakdown']['keywords']['matched'][:10],
+        'missing_keywords': ats_result['breakdown']['keywords']['missing'][:10],
+        'improvements': ats_result['improvements'][:5],
+        'ats_type': ats_result['ats_type'],
+        'personal_info_issues': ats_result['breakdown'].get('personal_info', {}).get('issues', []),
+        'is_free': True,
+        'message': 'Sign up for full optimization with AI rewrite and detailed analysis!'
+    })
+
+
 @optimize_bp.route('/optimize', methods=['POST'])
 def optimize():
     resume_text = request.form.get('resume_text', '')

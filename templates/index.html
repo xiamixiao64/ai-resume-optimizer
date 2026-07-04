@@ -137,6 +137,22 @@
     </div>
 
     <div class="container">
+        <!-- Demo Video Section -->
+        <div style="text-align:center;margin-bottom:40px">
+            <h2 style="color:#fff;margin-bottom:16px">See It In Action</h2>
+            <p style="color:#888;margin-bottom:24px">Watch how ResumeForge AI optimizes your resume in 30 seconds</p>
+            <div style="position:relative;max-width:700px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid #333;background:#111">
+                <div style="padding-top:56.25%;position:relative">
+                    <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1030,#111)">
+                        <div style="text-align:center">
+                            <div style="font-size:4rem;margin-bottom:16px">🎬</div>
+                            <p style="color:#888;font-size:1.1rem">Demo video coming soon</p>
+                            <p style="color:#666;font-size:0.9rem;margin-top:8px">Subscribe to get notified when it's ready</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="features">
             <div class="feature"><div class="icon">🎯</div><h3>ATS Score</h3><p>Get scored against real ATS filters</p></div>
             <div class="feature"><div class="icon">🔍</div><h3>ATS Type Detector</h3><p>Find which ATS the company uses</p></div>
@@ -185,8 +201,14 @@
                 <br><br>
                 <label>Job Description <span style="color:#666;font-weight:400">(optional but recommended)</span></label>
                 <textarea name="job_description" id="jobDesc" placeholder="Paste the job description you're applying for...&#10;&#10;This helps AI tailor your resume to the specific role." style="min-height:120px"></textarea>
-                <br><br>
+                <div style="margin-top:8px">
+                    <button type="button" onclick="loadExampleJD()" style="background:#1a1a1a;color:#a855f7;border:1px solid #333;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:0.85rem;transition:all 0.2s">💡 No JD? Try this example</button>
+                </div>
+                <br>
                 <button type="submit" class="submit-btn" id="submitBtn">{{ cta_text|default('Optimize My Resume — It\'s Free') }}</button>
+                <div style="text-align:center;margin-top:12px">
+                    <button type="button" onclick="freeScan()" style="background:transparent;color:#a855f7;border:1px solid #333;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:0.9rem;transition:all 0.2s">🎯 Free ATS Scan (No signup)</button>
+                </div>
             </form>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -469,6 +491,159 @@
         // Feedback functions
         function toggleFeedback() {
             document.getElementById('feedbackPopup').classList.toggle('show');
+        }
+
+        // Example JD function
+        function loadExampleJD() {
+            const exampleJD = `Software Engineer - Python/Django
+
+We are looking for a skilled Software Engineer to join our growing team. You will be responsible for developing and maintaining web applications using Python and Django framework.
+
+Requirements:
+- 3+ years of experience with Python development
+- Strong experience with Django or Flask frameworks
+- Experience with PostgreSQL or MySQL databases
+- Knowledge of RESTful API design
+- Experience with Git version control
+- Familiarity with AWS or GCP cloud services
+- Good communication skills in English
+
+Nice to have:
+- Experience with Docker and Kubernetes
+- Knowledge of React or Vue.js
+- Experience with CI/CD pipelines
+- Understanding of microservices architecture
+
+Benefits:
+- Competitive salary ($120k - $160k)
+- Remote work flexibility
+- Health insurance
+- 401k matching
+- Professional development budget`;
+
+            document.getElementById('jobDesc').value = exampleJD;
+            document.getElementById('jobDesc').style.borderColor = '#a855f7';
+
+            // Add visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Example loaded!';
+            btn.style.background = '#0a2a0a';
+            btn.style.color = '#22c55e';
+            btn.style.borderColor = '#22c55e';
+
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#1a1a1a';
+                btn.style.color = '#a855f7';
+                btn.style.borderColor = '#333';
+            }, 2000);
+        }
+
+        // Free scan function (no authentication required)
+        async function freeScan() {
+            const resumeText = document.getElementById('resumeText').value.trim();
+            if (!resumeText) {
+                alert('Please paste your resume first');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'Running free ATS scan...';
+
+            const formData = new FormData();
+            formData.append('resume_text', resumeText);
+            formData.append('job_description', document.getElementById('jobDesc').value);
+
+            try {
+                const resp = await fetch('/api/free-scan', { method: 'POST', body: formData });
+                const data = await resp.json();
+
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Show results in a modal
+                showFreeScanResults(data);
+            } catch (err) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function showFreeScanResults(data) {
+            const scoreColor = data.ats_score >= 80 ? '#22c55e' : data.ats_score >= 60 ? '#f59e0b' : '#ef4444';
+
+            let html = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:3000;display:flex;align-items:center;justify-content:center">
+                    <div style="background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:32px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
+                        <h2 style="color:#fff;margin-bottom:24px;text-align:center">Your ATS Score</h2>
+
+                        <div style="text-align:center;margin-bottom:24px">
+                            <div style="font-size:4rem;font-weight:800;color:${scoreColor}">${data.ats_score}</div>
+                            <div style="color:#888;font-size:1rem">out of 100</div>
+                        </div>
+
+                        <div style="margin-bottom:24px">
+                            <h3 style="color:#fff;font-size:1rem;margin-bottom:12px">Score Breakdown</h3>
+                            ${Object.entries(data.score_breakdown).map(([key, value]) => `
+                                <div style="margin-bottom:8px">
+                                    <div style="display:flex;justify-content:space-between;color:#ccc;font-size:0.9rem;margin-bottom:4px">
+                                        <span>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                        <span>${value}/100</span>
+                                    </div>
+                                    <div style="height:6px;background:#333;border-radius:3px">
+                                        <div style="height:100%;width:${value}%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:3px"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        ${data.matched_keywords.length > 0 ? `
+                            <div style="margin-bottom:16px">
+                                <h3 style="color:#fff;font-size:0.9rem;margin-bottom:8px">✓ Matched Keywords</h3>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    ${data.matched_keywords.map(kw => `<span style="background:#0a2a0a;color:#22c55e;padding:4px 8px;border-radius:4px;font-size:0.8rem">${kw}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${data.missing_keywords.length > 0 ? `
+                            <div style="margin-bottom:16px">
+                                <h3 style="color:#fff;font-size:0.9rem;margin-bottom:8px">✗ Missing Keywords</h3>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    ${data.missing_keywords.map(kw => `<span style="background:#2a0a0a;color:#ef4444;padding:4px 8px;border-radius:4px;font-size:0.8rem">${kw}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${data.improvements.length > 0 ? `
+                            <div style="margin-bottom:24px">
+                                <h3 style="color:#fff;font-size:0.9rem;margin-bottom:8px">💡 Top Improvements</h3>
+                                <ul style="color:#ccc;font-size:0.85rem;padding-left:20px">
+                                    ${data.improvements.map(imp => `<li style="margin-bottom:6px">${imp}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+
+                        <div style="text-align:center">
+                            <p style="color:#888;font-size:0.9rem;margin-bottom:16px">${data.message}</p>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-weight:600;margin-right:8px">Close</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove();document.getElementById('resumeText').focus();" style="background:transparent;color:#a855f7;border:1px solid #6366f1;padding:12px 24px;border-radius:8px;cursor:pointer;font-weight:600">Full Optimization →</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', html);
         }
         function submitFeedback() {
             const text = document.getElementById('feedbackText').value;
