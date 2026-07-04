@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial - ResumeForge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 40px; }
+        h2 { font-size: 1.5rem; color: #a855f7; margin: 40px 0 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        h3 { font-size: 1.2rem; color: #fff; margin: 24px 0 12px; }
+        p { line-height: 1.8; margin-bottom: 16px; color: #ccc; }
+        .step-card { background: #1a1a1a; border-radius: 12px; padding: 24px; margin-bottom: 20px; border-left: 4px solid #6366f1; }
+        .step-number { display: inline-block; background: #6366f1; color: #fff; width: 32px; height: 32px; border-radius: 50%; text-align: center; line-height: 32px; font-weight: bold; margin-right: 12px; }
+        .step-title { font-weight: 700; color: #fff; font-size: 1.1rem; }
+        .score-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .score-table th, .score-table td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        .score-table th { background: #222; color: #a855f7; }
+        .score-table tr:hover { background: #1a1a1a; }
+        .faq-item { background: #1a1a1a; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-q { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .faq-q:hover { background: #222; }
+        .faq-a { padding: 0 20px 16px; color: #888; line-height: 1.8; display: none; }
+        .faq-item.open .faq-a { display: block; }
+        .tip-box { background: #1a2e1a; border-left: 4px solid #22c55e; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .tip-box strong { color: #22c55e; }
+        .warning-box { background: #2a1a1a; border-left: 4px solid #ef4444; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .warning-box strong { color: #ef4444; }
+        ul { margin-left: 20px; margin-bottom: 16px; }
+        li { margin-bottom: 8px; color: #ccc; }
+        code { background: #222; padding: 2px 8px; border-radius: 4px; font-family: monospace; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 20px; }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ResumeForge AI 使用指南</h1>
+        <p class="subtitle">从零开始，3分钟掌握所有功能</p>
+
+        <h2>快速开始</h2>
+        
+        <div class="step-card">
+            <span class="step-number">1</span>
+            <span class="step-title">优化简历</span>
+            <p style="margin-top:12px">访问首页，粘贴你的简历内容和目标职位描述，点击优化按钮，30秒内获得ATS评分和改进建议。</p>
+        </div>
+
+        <div class="step-card">
+            <span class="step-number">2</span>
+            <span class="step-title">检测ATS类型</span>
+            <p style="margin-top:12px">点击导航栏"ATS Detector"，粘贴招聘链接，自动识别12种ATS系统并提供针对性建议。</p>
+        </div>
+
+        <div class="step-card">
+            <span class="step-number">3</span>
+            <span class="step-title">准备面试</span>
+            <p style="margin-top:12px">选择"Interview"模式，获取技术/行为面试问题，查看回答指南和示例。</p>
+        </div>
+
+        <div class="step-card">
+            <span class="step-number">4</span>
+            <span class="step-title">估算薪资</span>
+            <p style="margin-top:12px">选择"Salary"模式，查看市场薪资范围和谈判技巧。</p>
+        </div>
+
+        <h2>ATS评分说明</h2>
+        <table class="score-table">
+            <tr><th>分数范围</th><th>含义</th><th>建议</th></tr>
+            <tr><td>90-100</td><td>优秀</td><td>可以直接投递</td></tr>
+            <tr><td>75-89</td><td>良好</td><td>微调后投递</td></tr>
+            <tr><td>60-74</td><td>一般</td><td>需要优化关键词</td></tr>
+            <tr><td>&lt;60</td><td>较差</td><td>重写简历</td></tr>
+        </table>
+
+        <div class="tip-box">
+            <strong>评分维度：</strong>格式兼容性（20%）+ 关键词匹配（35%）+ 工作经验（25%）+ 教育背景（10%）+ 联系方式（10%）
+        </div>
+
+        <h2>X-Y-Z格式指南</h2>
+        <p>最佳简历bullet point格式：</p>
+        <ul>
+            <li><strong>X</strong>：你做了什么（行动动词）</li>
+            <li><strong>Y</strong>：你怎么做的（方法/工具）</li>
+            <li><strong>Z</strong>：结果（量化数据）</li>
+        </ul>
+        <div class="warning-box">
+            <strong>❌ 错误示例：</strong>"Worked on frontend development"
+        </div>
+        <div class="tip-box">
+            <strong>✅ 正确示例：</strong>"Built React component library reducing load time by 40%"
+        </div>
+
+        <h2>ATS类型识别</h2>
+        <p>支持12种ATS系统：Workday、Taleo、Greenhouse、Lever、iCIMS、SmartRecruiters、BambooHR、SuccessFactors、JobVite、ApplicantStack、Bullhorn、ClearCompany</p>
+
+        <h2>常见问题</h2>
+        
+        <div class="faq-item open">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">为什么我的简历得分低？ <span>▼</span></div>
+            <div class="faq-a">常见原因：缺少目标职位的关键词、格式不符合ATS标准、没有量化工作成果、缺少标准章节标题。</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">如何提高ATS得分？ <span>▼</span></div>
+            <div class="faq-a">按优先级修复：1. 添加缺失的关键词 2. 使用X-Y-Z格式 3. 确保格式简洁 4. 添加专业摘要。</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">ATS类型识别有什么用？ <span>▼</span></div>
+            <div class="faq-a">不同ATS系统有不同规则：Workday需要精确匹配，Taleo格式严格，Greenhouse重视技能标签。识别后可针对性优化。</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">薪资估算准确吗？ <span>▼</span></div>
+            <div class="faq-a">基于市场数据、经验年限、技能组合估算。建议作为参考，实际还需考虑公司规模、地区等因素。</div>
+        </div>
+
+        <div style="text-align:center; margin-top:40px;">
+            <a href="/" class="btn">开始优化简历</a>
+        </div>
+    </div>
+</body>
+</html>

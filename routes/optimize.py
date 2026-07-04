@@ -137,6 +137,13 @@ def generate_specific_improvements(data):
     return improvements[:4]
 
 
+@optimize_bp.route('/tutorial')
+def tutorial():
+    """Render tutorial page"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('tutorial.html', user=user)
+
+
 @optimize_bp.route('/')
 def index():
     user = get_user_by_id(session.get('user_id'))
