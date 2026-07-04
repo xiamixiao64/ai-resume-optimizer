@@ -144,6 +144,13 @@ def tutorial():
     return render_template('tutorial.html', user=user)
 
 
+@optimize_bp.route('/refund-policy')
+def refund_policy():
+    """Render refund policy page"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('refund_policy.html', user=user)
+
+
 @optimize_bp.route('/')
 def index():
     user = get_user_by_id(session.get('user_id'))
