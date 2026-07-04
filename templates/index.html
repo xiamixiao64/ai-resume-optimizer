@@ -106,7 +106,8 @@
         .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) { .hero h1 { font-size: 2rem; } .features { grid-template-columns: 1fr; } .stats { flex-direction: column; gap: 16px; } .testimonial-grid { grid-template-columns: 1fr; } }
-        #feedbackPopup.show { display: block; }
+        #feedbackPopup { display: none !important; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 100; }
+        #feedbackPopup.show { display: block !important; }
     </style>
 </head>
 <body>
