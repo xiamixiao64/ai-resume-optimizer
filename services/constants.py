@@ -76,6 +76,18 @@ SEMANTIC_GROUPS = {
     "methodology": ["agile", "scrum", "kanban", "tdd", "bdd", "pair programming", "code review"],
 }
 
+# Synonym groups for keyword matching
+SYNONYM_GROUPS = {
+    "manage": ["lead", "direct", "oversee", "supervise", "coordinate"],
+    "develop": ["build", "create", "design", "implement", "construct"],
+    "improve": ["enhance", "optimize", "upgrade", "refine", "boost"],
+    "reduce": ["decrease", "minimize", "cut", "lower", "streamline"],
+    "increase": ["grow", "expand", "raise", "elevate", "scale"],
+    "analyze": ["evaluate", "assess", "review", "examine", "audit"],
+    "communicate": ["present", "report", "convey", "articulate", "express"],
+    "collaborate": ["partner", "team up", "work with", "coordinate with"],
+}
+
 # X-Y-Z format patterns for quantified achievements
 XYZ_PATTERNS = [
     # X (action) - Y (context) - Z (result)

@@ -5,7 +5,7 @@ from services.constants import (
     EMAIL_PATTERN, PHONE_PATTERN, STANDARD_HEADERS, TECH_KEYWORDS,
     SOFT_KEYWORDS, STRONG_VERBS, WEAK_VERBS, DEGREE_KEYWORDS,
     SCHOOL_KEYWORDS, LOCATIONS, SEMANTIC_GROUPS, XYZ_PATTERNS,
-    PORTFOLIO_PATTERNS, PORTFOLIO_KEYWORDS
+    PORTFOLIO_PATTERNS, PORTFOLIO_KEYWORDS, SYNONYM_GROUPS
 )
 
 class ATSEngine:
@@ -514,18 +514,33 @@ class ATSEngine:
 
         matched = []
         missing = []
+        synonym_matches = 0
 
         for keyword in jd_keywords:
             if keyword.lower() in resume_lower:
                 matched.append(keyword)
             else:
-                missing.append(keyword)
+                # Check for synonyms
+                found_synonym = False
+                for main_word, synonyms in SYNONYM_GROUPS.items():
+                    if keyword.lower() == main_word or keyword.lower() in synonyms:
+                        for syn in synonyms:
+                            if syn in resume_lower:
+                                synonym_matches += 1
+                                found_synonym = True
+                                break
+                    if found_synonym:
+                        break
+                if not found_synonym:
+                    missing.append(keyword)
 
         if len(jd_keywords) == 0:
             score = 70
         else:
-            match_rate = len(matched) / len(jd_keywords)
-            score = min(100, int(match_rate * 100))
+            # Direct matches count full, synonym matches count partial
+            direct_match_rate = len(matched) / len(jd_keywords)
+            synonym_bonus = (synonym_matches / len(jd_keywords)) * 0.3
+            score = min(100, int((direct_match_rate + synonym_bonus) * 100))
 
         bonus = self._calculate_position_bonus(matched, resume_text)
         score = min(100, score + bonus)
@@ -533,7 +548,8 @@ class ATSEngine:
         return {
             "score": score,
             "matched": matched,
-            "missing": missing
+            "missing": missing,
+            "synonym_matches": synonym_matches
         }
 
     def _extract_keywords(self, text: str) -> list:
