@@ -306,80 +306,105 @@ JOB DESCRIPTION:
         system_msg = "你是职业顾问。返回严格JSON。"
         data = parse_ai_json(call_ai(prompt, system_msg))
     elif mode == 'interview':
-        prompt = """基于这份简历和目标职位，生成面试准备问题和答案建议。
+        # Extract key skills for personalized questions
+        skills = []
+        common_skills = ['python', 'java', 'javascript', 'react', 'aws', 'docker', 'sql', 'git', 'node.js', 'django', 'flask', 'kubernetes']
+        for skill in common_skills:
+            if skill in resume_text.lower():
+                skills.append(skill)
+
+        prompt = f"""Based on this resume and job description, generate highly personalized interview questions.
 
 RESUME:
-""" + resume_text + """
+{resume_text}
 
 JOB DESCRIPTION:
-""" + jd + """
+{jd}
 
-返回严格JSON：
-{
+KEY SKILLS FOUND IN RESUME: {', '.join(skills[:5]) if skills else 'Not specified'}
+
+Return strict JSON:
+{{
   "technical_questions": [
-    {"question": "技术面试问题", "answer_guide": "回答要点和示例", "difficulty": "easy/medium/hard"}
+    {{"question": "Specific question about their experience with [exact skill from resume]", "answer_guide": "How to answer using STAR method with specific examples", "difficulty": "easy/medium/hard"}}
   ],
   "behavioral_questions": [
-    {"question": "行为面试问题", "answer_guide": "使用STAR方法的回答框架", "category": "leadership/teamwork/problem-solving"}
+    {{"question": "Behavioral question targeting their specific experience", "answer_guide": "STAR framework answer structure", "category": "leadership/teamwork/problem-solving"}}
   ],
   "company_questions": [
-    {"question": "关于公司的问题", "why_ask": "面试官为什么问这个", "good_answer": "好的回答方向"}
+    {{"question": "Questions about the specific company/role", "why_ask": "Why interviewer asks this", "good_answer": "How to answer effectively"}}
   ],
   "your_questions": [
-    {"question": "你可以问面试官的问题", "purpose": "这个问题展示你的什么特质"}
+    {{"question": "Smart questions to ask the interviewer", "purpose": "What this question demonstrates about you"}}
   ],
-  "tips": ["面试技巧建议1", "建议2"]
-}
+  "tips": ["Personalized tip based on their background"]
+}}
 
-规则：
-1. 技术问题基于简历中的技能和经验
-2. 行为问题使用STAR框架（Situation, Task, Action, Result）
-3. 公司问题基于行业和职位特点
-4. 问题难度覆盖easy/medium/hard
-5. 每类至少3个问题"""
-        system_msg = "你是资深面试教练。返回严格JSON。"
+CRITICAL RULES:
+1. Questions MUST reference specific skills/projects from the resume
+2. Each question should be unique and tailored to THIS candidate
+3. Avoid generic questions - be specific about their experience
+4. Include at least 2 technical, 2 behavioral, 2 company questions
+5. Provide actionable answer guides, not just generic advice"""
+        system_msg = "You are an expert interview coach. Generate highly personalized questions based on the candidate's specific resume and target role. Return strict JSON only."
         data = parse_ai_json(call_ai(prompt, system_msg))
     elif mode == 'salary':
-        prompt = """基于这份简历和目标职位，评估薪资范围和谈判策略。
+        # Extract experience years
+        import re
+        years_match = re.search(r'(\d+)\+?\s*(?:years?|yrs?)', resume_text.lower())
+        years = int(years_match.group(1)) if years_match else 2
+
+        # Extract skills
+        skills = []
+        common_skills = ['python', 'java', 'javascript', 'react', 'aws', 'docker', 'sql', 'node.js', 'django', 'flask', 'kubernetes', 'golang', 'go']
+        for skill in common_skills:
+            if skill in resume_text.lower():
+                skills.append(skill)
+
+        prompt = f"""Analyze this resume and estimate salary range based on market data.
 
 RESUME:
-""" + resume_text + """
+{resume_text}
 
 JOB DESCRIPTION:
-""" + jd + """
+{jd}
 
-返回严格JSON：
-{
-  "salary_range": {
+EXPERIENCE YEARS: {years}
+KEY SKILLS: {', '.join(skills[:5]) if skills else 'Not specified'}
+
+Return strict JSON:
+{{
+  "salary_range": {{
     "minimum": 80000,
     "recommended": 100000,
     "maximum": 130000,
     "currency": "USD"
-  },
-  "market_analysis": "当前市场对该职位的薪资水平分析",
+  }},
+  "market_analysis": "Detailed analysis of current market rates for this role based on experience, skills, and location",
   "factors": [
-    {"factor": "影响薪资的因素", "impact": "high/medium/low", "explanation": "具体说明"}
+    {{"factor": "Factor affecting salary", "impact": "high/medium/low", "explanation": "Specific explanation"}}
   ],
   "negotiation_tips": [
-    {"tip": "谈判技巧", "example": "具体话术示例"}
+    {{"tip": "Negotiation strategy", "example": "Exact script to use"}}
   ],
-  "total_compensation": {
-    "base_salary": "基本工资",
-    "equity": "股权/期权",
-    "bonus": "奖金",
-    "benefits": "福利"
-  },
-  "red_flags": ["薪资谈判中的危险信号"]
-}
+  "total_compensation": {{
+    "base_salary": "Base salary amount",
+    "equity": "Stock options/equity details",
+    "bonus": "Bonus structure",
+    "benefits": "Benefits package"
+  }},
+  "red_flags": ["Red flags in salary offers to watch for"]
+}}
 
-规则：
-1. 基于经验年限、技能、地区估算薪资
-2. 考虑行业标准和公司规模
-3. 提供具体的谈判话术
-4. 分析总薪酬包（不只是基本工资）
-5. 指出常见的谈判陷阱"""
-        system_msg = "你是薪资谈判专家和职业顾问。返回严格JSON。"
+CRITICAL RULES:
+1. Salary MUST be in USD
+2. Base salary on REAL market data for {years} years experience
+3. Consider location (US average unless specified)
+4. Include specific negotiation scripts
+5. Break down total compensation realistically"""
+        system_msg = "You are a compensation expert with access to 2025-2026 market salary data. Provide accurate, data-driven salary estimates. Return strict JSON only."
         data = parse_ai_json(call_ai(prompt, system_msg))
+        data = validate_salary_output(data)
     else:
         prompt = """你是资深ATS优化专家和职业顾问。分析并优化这份简历。
 
