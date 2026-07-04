@@ -313,41 +313,46 @@ JOB DESCRIPTION:
             if skill in resume_text.lower():
                 skills.append(skill)
 
-        prompt = f"""Based on this resume and job description, generate highly personalized interview questions.
+        # Get questions from knowledge base
+        from services.interview_knowledge import generate_interview_prep
+        kb_data = generate_interview_prep(skills, "technical")
+
+        # Also get AI-generated questions for personalization
+        prompt = f"""Based on this resume and job description, generate 2-3 additional personalized interview questions.
 
 RESUME:
-{resume_text}
+{resume_text[:500]}
 
 JOB DESCRIPTION:
-{jd}
+{jd[:300]}
 
-KEY SKILLS FOUND IN RESUME: {', '.join(skills[:5]) if skills else 'Not specified'}
+KEY SKILLS: {', '.join(skills[:5]) if skills else 'Not specified'}
 
 Return strict JSON:
 {{
-  "technical_questions": [
-    {{"question": "Specific question about their experience with [exact skill from resume]", "answer_guide": "How to answer using STAR method with specific examples", "difficulty": "easy/medium/hard"}}
+  "extra_technical": [
+    {{"question": "Question about specific project or skill from resume", "answer_guide": "Answer guidance", "difficulty": "medium"}}
   ],
-  "behavioral_questions": [
-    {{"question": "Behavioral question targeting their specific experience", "answer_guide": "STAR framework answer structure", "category": "leadership/teamwork/problem-solving"}}
-  ],
-  "company_questions": [
-    {{"question": "Questions about the specific company/role", "why_ask": "Why interviewer asks this", "good_answer": "How to answer effectively"}}
-  ],
-  "your_questions": [
-    {{"question": "Smart questions to ask the interviewer", "purpose": "What this question demonstrates about you"}}
-  ],
-  "tips": ["Personalized tip based on their background"]
+  "extra_behavioral": [
+    {{"question": "Behavioral question based on their experience", "answer_guide": "STAR method guidance", "category": "problem-solving"}}
+  ]
 }}
 
-CRITICAL RULES:
-1. Questions MUST reference specific skills/projects from the resume
-2. Each question should be unique and tailored to THIS candidate
-3. Avoid generic questions - be specific about their experience
-4. Include at least 2 technical, 2 behavioral, 2 company questions
-5. Provide actionable answer guides, not just generic advice"""
-        system_msg = "You are an expert interview coach. Generate highly personalized questions based on the candidate's specific resume and target role. Return strict JSON only."
-        data = parse_ai_json(call_ai(prompt, system_msg))
+RULES:
+1. Reference SPECIFIC projects/skills from the resume
+2. Be unique - not generic template questions
+3. Focus on their actual experience"""
+        system_msg = "Generate personalized interview questions. Return strict JSON only."
+        ai_data = parse_ai_json(call_ai(prompt, system_msg))
+
+        # Merge knowledge base with AI-generated questions
+        data = {
+            "technical_questions": kb_data.get("technical_questions", []) + ai_data.get("extra_technical", []),
+            "behavioral_questions": kb_data.get("behavioral_questions", []) + ai_data.get("extra_behavioral", []),
+            "company_questions": kb_data.get("company_questions", []),
+            "your_questions": kb_data.get("your_questions", []),
+            "tips": kb_data.get("tips", [])
+        }
     elif mode == 'salary':
         # Extract experience years
         import re
