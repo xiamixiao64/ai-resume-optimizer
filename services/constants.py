@@ -78,11 +78,11 @@ SEMANTIC_GROUPS = {
 
 # Synonym groups for keyword matching
 SYNONYM_GROUPS = {
-    "manage": ["lead", "direct", "oversee", "supervise", "coordinate"],
-    "develop": ["build", "create", "design", "implement", "construct"],
-    "improve": ["enhance", "optimize", "upgrade", "refine", "boost"],
-    "reduce": ["decrease", "minimize", "cut", "lower", "streamline"],
-    "increase": ["grow", "expand", "raise", "elevate", "scale"],
+    "manage": ["lead", "led", "direct", "oversee", "supervise", "coordinate"],
+    "develop": ["build", "built", "create", "created", "design", "designed", "implement", "implemented", "construct"],
+    "improve": ["enhance", "enhanced", "optimize", "optimized", "upgrade", "refine", "boost", "increased"],
+    "reduce": ["decrease", "minimize", "cut", "lower", "streamline", "reduced", "decreased"],
+    "increase": ["grow", "expanded", "raise", "raised", "elevate", "scale", "scaled"],
     "analyze": ["evaluate", "assess", "review", "examine", "audit"],
     "communicate": ["present", "report", "convey", "articulate", "express"],
     "collaborate": ["partner", "team up", "work with", "coordinate with"],
