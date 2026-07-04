@@ -144,7 +144,7 @@
                 <div class="score-details">
                     <div class="score-verdict">{{ verdict }}</div>
                     <div style="margin-bottom:12px">
-                        <button class="copy-btn" onclick="copyScore()" style="font-size:0.85rem;padding:6px 12px">📋 Copy Score</button>
+                        <button class="copy-btn" onclick="copyScore(this)" style="font-size:0.85rem;padding:6px 12px">📋 Copy Score</button>
                     </div>
                     {% if data.score_breakdown is defined and data.score_breakdown %}
                     <div class="score-bars">
@@ -246,7 +246,7 @@
             <h2>&#x1F4DD; Optimized Resume</h2>
             <div class="resume-output" id="resumeOutput">{{ data.optimized_resume|default('Optimization completed. Review the changes above.') }}</div>
             <div class="btn-group">
-                <button class="copy-btn" onclick="copyResume()">Copy to Clipboard</button>
+                <button class="copy-btn" onclick="copyResume(this)">Copy to Clipboard</button>
                 <form action="/export/pdf" method="POST" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="resume_content" id="resumeContent" value="{{ data.optimized_resume }}">
@@ -306,20 +306,18 @@
     </div>
 
     <script>
-        function copyScore() {
+        function copyScore(btn) {
             const score = '{{ data.ats_score|default(65) }}';
             const text = `My resume got an ATS score of ${score}/100 on ResumeForge AI! Try it free at https://resumeforge.ai`;
             navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
                 btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = '📋 Copy Score', 2000);
             });
         }
 
-        function copyResume() {
+        function copyResume(btn) {
             const text = document.getElementById('resumeOutput').innerText;
             navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('.copy-btn');
                 btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
             });
