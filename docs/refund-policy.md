@@ -1,36 +1,36 @@
-# 退款政策
+# Refund Policy
 
-## 30天退款保证
+## 30-Day Money-Back Guarantee
 
-我们提供30天无条件退款保证。如果您对产品不满意，我们会在30天内全额退款。
+We offer a 30-day unconditional money-back guarantee. If you're not satisfied with the product, we will refund you in full within 30 days.
 
-## 退款条件
+## Refund Conditions
 
-1. **时间限制**：购买后30天内申请
-2. **使用限制**：已使用的优化次数不超过3次
-3. **身份验证**：需提供购买凭证
+1. **Time Limit:** Apply within 30 days of purchase
+2. **Usage Limit:** Less than 3 optimizations used
+3. **Verification:** Purchase receipt required
 
-## 退款流程
+## Refund Process
 
-1. 发送邮件至 xiamixiao64@gmail.com
-2. 提供订单号和购买邮箱
-3. 说明退款原因（可选）
-4. 3-5个工作日内处理退款
+1. Email xiamixiao64@gmail.com
+2. Provide your order number and purchase email
+3. Explain reason (optional)
+4. Refund processed within 3-5 business days
 
-## 防止滥用措施
+## Anti-Abuse Measures
 
-1. **使用记录追踪**：系统记录每次优化使用
-2. **退款频率限制**：同一邮箱最多退款1次
-3. **IP地址追踪**：防止同一用户多次注册退款
-4. **支付方式验证**：通过LemonSqueezy处理退款
+1. **Usage Tracking:** System records all optimization usage
+2. **Refund Frequency:** Maximum 1 refund per email
+3. **IP Address Tracking:** Prevents multiple registrations from same IP
+4. **Payment Verification:** Refunds processed through LemonSqueezy
 
-## 常见问题
+## FAQ
 
-**Q: 使用了多少次还能退款？**
-A: 3次以内可全额退款，超过3次按比例退款。
+**Q: How many uses can I have and still get a refund?**
+A: Full refund for 3 or fewer uses. Pro-rated refund for more.
 
-**Q: 退款多久到账？**
-A: 3-5个工作日，具体取决于支付方式。
+**Q: How long does a refund take?**
+A: 3-5 business days, depending on payment method.
 
-**Q: 退款后还能使用吗？**
-A: 退款后账户会降级为免费版，保留已创建的内容。
+**Q: Can I use the service after refund?**
+A: Account will be downgraded to free tier. Created content is retained.

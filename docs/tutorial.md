@@ -1,162 +1,162 @@
-# ResumeForge AI 使用指南
+# ResumeForge AI User Guide
 
-## 快速开始（3分钟）
+## Quick Start (3 minutes)
 
-### 第一步：优化简历
+### Step 1: Optimize Your Resume
 
-1. 访问 [resumeforge.ai](https://resumeforge.ai)
-2. 注册免费账号
-3. 粘贴你的简历内容
-4. 粘贴目标职位描述（推荐）
-5. 点击 "Optimize My Resume"
-6. 查看ATS评分和改进建议
+1. Visit [resumeforge.ai](https://resumeforge.ai)
+2. Register a free account
+3. Paste your resume content
+4. Paste target job description (recommended)
+5. Click "Optimize My Resume"
+6. View ATS score and improvement suggestions
 
-### 第二步：检测ATS类型
+### Step 2: Detect ATS Type
 
-1. 点击导航栏 "ATS Detector"
-2. 粘贴招聘信息中的申请链接
-3. 自动识别12种ATS系统
-4. 获取针对性优化建议
+1. Click "ATS Detector" in navigation
+2. Paste the job application link
+3. Auto-detect 12 ATS systems
+4. Get targeted optimization tips
 
-### 第三步：准备面试
+### Step 3: Prepare for Interview
 
-1. 选择 "Interview" 模式
-2. 输入简历和职位描述
-3. 获取技术/行为面试问题
-4. 查看回答指南和示例
+1. Select "Interview" mode
+2. Enter resume and job description
+3. Get technical/behavioral questions
+4. View answer guides and examples
 
-### 第四步：估算薪资
+### Step 4: Estimate Salary
 
-1. 选择 "Salary" 模式
-2. 输入简历和目标职位
-3. 查看市场薪资范围
-4. 获取谈判技巧
+1. Select "Salary" mode
+2. Enter resume and target position
+3. View market salary range
+4. Get negotiation tips
 
 ---
 
-## 功能详解
+## Feature Details
 
-### ATS评分（0-100分）
+### ATS Score (0-100)
 
-| 分数范围 | 含义 | 建议 |
-|----------|------|------|
-| 90-100 | 优秀 | 可以直接投递 |
-| 75-89 | 良好 | 微调后投递 |
-| 60-74 | 一般 | 需要优化关键词 |
-| <60 | 较差 | 重写简历 |
+| Score Range | Meaning | Recommendation |
+|-------------|---------|----------------|
+| 90-100 | Excellent | Ready to submit |
+| 75-89 | Good | Minor adjustments needed |
+| 60-74 | Average | Keywords need optimization |
+| <60 | Poor | Rewrite resume |
 
-**评分维度：**
-- 格式兼容性（20%）
-- 关键词匹配（35%）
-- 工作经验质量（25%）
-- 教育背景（10%）
-- 联系方式（10%）
+**Scoring Dimensions:**
+- Formatting compatibility (20%)
+- Keyword matching (35%)
+- Experience quality (25%)
+- Education (10%)
+- Contact info (10%)
 
-### ATS类型识别
+### ATS Type Detection
 
-支持12种ATS系统：
-- Workday、Taleo、Greenhouse、Lever
-- iCIMS、SmartRecruiters、BambooHR
-- SuccessFactors、JobVite、ApplicantStack
-- Bullhorn、ClearCompany
+Supports 12 ATS systems:
+- Workday, Taleo, Greenhouse, Lever
+- iCIMS, SmartRecruiters, BambooHR
+- SuccessFactors, JobVite, ApplicantStack
+- Bullhorn, ClearCompany
 
-### 关键词匹配
+### Keyword Matching
 
-- **语义匹配**：理解同义词和相关词
-- **缺失关键词**：列出需要添加的技能
-- **位置加分**：Skills部分的关键词权重更高
+- **Semantic matching**: Understands synonyms and related terms
+- **Missing keywords**: Lists skills you need to add
+- **Position bonus**: Keywords in Skills section weighted higher
 
-### X-Y-Z格式
+### X-Y-Z Format
 
-最佳简历bullet point格式：
-- **X**：你做了什么（行动动词）
-- **Y**：你怎么做的（方法/工具）
-- **Z**：结果（量化数据）
+Best resume bullet point format:
+- **X**: What you did (action verb)
+- **Y**: How you did it (method/tools)
+- **Z**: Result (quantified impact)
 
-示例：
+Example:
 - ❌ "Worked on frontend development"
 - ✅ "Built React component library reducing load time by 40%"
 
 ---
 
-## 常见问题
+## FAQ
 
-### Q: 为什么我的简历得分低？
+### Q: Why is my resume score low?
 
-A: 常见原因：
-1. 缺少目标职位的关键词
-2. 格式不符合ATS标准
-3. 没有量化工作成果
-4. 缺少标准章节标题
+A: Common reasons:
+1. Missing keywords from target job
+2. Formatting doesn't meet ATS standards
+3. No quantified work achievements
+4. Missing standard section headers
 
-### Q: 如何提高ATS得分？
+### Q: How to improve ATS score?
 
-A: 按优先级修复：
-1. 添加缺失的关键词到Skills和Experience
-2. 使用X-Y-Z格式重写bullet points
-3. 确保格式简洁（单栏、标准字体）
-4. 添加专业摘要和技能列表
+A: Fix in priority order:
+1. Add missing keywords to Skills and Experience
+2. Rewrite bullets using X-Y-Z format
+3. Ensure clean formatting (single column, standard fonts)
+4. Add professional summary and skills section
 
-### Q: ATS类型识别有什么用？
+### Q: What does ATS type detection do?
 
-A: 不同ATS系统有不同的解析规则：
-- Workday：需要精确关键词匹配
-- Taleo：格式要求严格
-- Greenhouse：技能标签重要
+A: Different ATS systems have different parsing rules:
+- Workday: Requires exact keyword matching
+- Taleo: Strict formatting requirements
+- Greenhouse: Skills tags are important
 
-识别ATS类型后，可以针对性优化。
+After detecting ATS type, you can optimize accordingly.
 
-### Q: 面试准备功能怎么用？
+### Q: How does interview preparation work?
 
-A: 输入简历和职位描述后，系统会生成：
-- 技术面试问题（基于你的技能）
-- 行为面试问题（使用STAR方法）
-- 公司相关问题
-- 你可以问面试官的问题
+A: After entering resume and job description, the system generates:
+- Technical interview questions (based on your skills)
+- Behavioral questions (using STAR method)
+- Company-related questions
+- Questions you can ask the interviewer
 
-### Q: 薪资估算准确吗？
+### Q: Is salary estimation accurate?
 
-A: 薪资估算是基于：
-- 市场数据
-- 你的经验年限
-- 技能组合
-- 目标职位
+A: Salary estimation is based on:
+- Market data
+- Your years of experience
+- Skill combination
+- Target position
 
-建议作为参考，实际薪资还需考虑公司规模、地区等因素。
-
----
-
-## 高级技巧
-
-### 1. 针对性优化
-
-每次投递前，用目标职位的JD运行一次分析，确保关键词匹配。
-
-### 2. 多版本简历
-
-根据不同职位类型，维护2-3个简历版本：
-- 技术岗版本
-- 管理岗版本
-- 跨行业版本
-
-### 3. 求职追踪
-
-使用Tracker功能记录：
-- 申请的公司和职位
-- 申请状态
-- 面试进度
-- 备注信息
-
-### 4. 持续优化
-
-- 每次投递后记录反馈
-- 根据面试问题调整简历
-- 定期更新技能列表
+Consider it a reference; actual salary depends on company size, location, etc.
 
 ---
 
-## 获取帮助
+## Advanced Tips
 
-- **邮箱**：xiamixiao64@gmail.com
-- **Twitter**：@ResumeForgeAI
-- **GitHub**：github.com/xiamixiao64/ai-resume-optimizer
+### 1. Targeted Optimization
+
+Before each application, run analysis with the target job's JD to ensure keyword matching.
+
+### 2. Multiple Resume Versions
+
+Maintain 2-3 resume versions for different job types:
+- Technical roles
+- Management roles
+- Cross-industry roles
+
+### 3. Job Tracking
+
+Use the Tracker feature to record:
+- Companies and positions applied to
+- Application status
+- Interview progress
+- Notes
+
+### 4. Continuous Improvement
+
+- Record feedback after each application
+- Adjust resume based on interview questions
+- Update skills list regularly
+
+---
+
+## Get Help
+
+- **Email**: xiamixiao64@gmail.com
+- **Twitter**: @ResumeForgeAI
+- **GitHub**: github.com/xiamixiao64/ai-resume-optimizer
