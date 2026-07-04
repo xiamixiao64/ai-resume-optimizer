@@ -252,8 +252,37 @@ def submit_feedback():
         'feedback_length': len(feedback)
     })
 
-    # In production, save to database or send to email
+    # Log feedback
     logger.info(f"Feedback received: {feedback[:100]}... (page={page}, score={score})")
+
+    # Send email notification to owner
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+
+        owner_email = 'xiamixiao64@gmail.com'
+        subject = f'ResumeForge AI Feedback - {page or "General"}'
+        body = f"""
+Feedback from ResumeForge AI:
+
+Page: {page or 'N/A'}
+Score: {score or 'N/A'}
+User ID: {user_id or 'Anonymous'}
+
+Message:
+{feedback}
+        """
+
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = 'noreply@resumeforge.ai'
+        msg['To'] = owner_email
+
+        # Note: In production, configure SMTP server
+        # For now, just log the email content
+        logger.info(f"Email notification: {subject}")
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
 
     return jsonify({'status': 'ok', 'message': 'Thank you for your feedback!'})
 
