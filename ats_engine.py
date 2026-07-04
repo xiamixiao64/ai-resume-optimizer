@@ -1,4 +1,5 @@
 # ats_engine.py
+import os
 import re
 from difflib import SequenceMatcher
 from services.constants import (
@@ -624,17 +625,21 @@ class ATSEngine:
         resume_lower = resume_text.lower()
         jd_lower = jd_text.lower()
 
-        # 尝试使用BERT语义匹配
-        bert_score = 50  # 默认分数
+        # 尝试使用BERT语义匹配（仅在环境变量启用时）
+        bert_score = 50
         bert_analysis = ""
-        try:
-            from services.bert_matcher import calculate_semantic_similarity
-            bert_result = calculate_semantic_similarity(resume_text, jd_text)
-            bert_score = bert_result.get("score", 50)
-            bert_analysis = bert_result.get("analysis", "")
-        except Exception as e:
-            # 回退到传统方法
-            logger.warning(f"BERT matching failed, falling back to SequenceMatcher: {e}")
+        bert_enabled = os.environ.get('ENABLE_BERT', 'false').lower() == 'true'
+        if bert_enabled:
+            try:
+                from services.bert_matcher import calculate_semantic_similarity
+                bert_result = calculate_semantic_similarity(resume_text, jd_text)
+                bert_score = bert_result.get("score", 50)
+                bert_analysis = bert_result.get("analysis", "")
+            except Exception as e:
+                logger.warning(f"BERT matching failed, falling back to SequenceMatcher: {e}")
+                similarity = SequenceMatcher(None, resume_lower, jd_lower).ratio()
+                bert_score = min(100, int(similarity * 100 * 2))
+        else:
             similarity = SequenceMatcher(None, resume_lower, jd_lower).ratio()
             bert_score = min(100, int(similarity * 100 * 2))
 
