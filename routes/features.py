@@ -360,6 +360,7 @@ def add_application():
     company = data.get('company', '').strip()
     position = data.get('position', '').strip()
     job_url = data.get('job_url', '').strip()
+    salary = data.get('salary', '').strip()
     notes = data.get('notes', '').strip()
     
     if not company or not position:
@@ -374,6 +375,7 @@ def add_application():
         'company': company,
         'position': position,
         'job_url': job_url,
+        'salary': salary,
         'notes': notes,
         'status': 'applied',
         'ats_score': data.get('ats_score'),

@@ -85,7 +85,7 @@
                         <th>Company</th>
                         <th>Position</th>
                         <th>Status</th>
-                        <th>ATS Score</th>
+                        <th>Salary</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -96,7 +96,7 @@
                         <td><strong>{{ app.company }}</strong></td>
                         <td>{{ app.position }}</td>
                         <td><span class="status {{ app.status }}">{{ app.status }}</span></td>
-                        <td>{{ app.ats_score or '-' }}</td>
+                        <td>{{ app.salary or '-' }}</td>
                         <td>{{ app.created_at[:10] }}</td>
                         <td>
                             <div class="actions-cell">
@@ -134,11 +134,16 @@
                 <input type="url" id="addUrl" placeholder="https://careers.google.com/...">
             </div>
             <div class="form-group">
+                <label>Salary Range (optional)</label>
+                <input type="text" id="addSalary" placeholder="e.g., $80K-$120K">
+            </div>
+            <div class="form-group">
                 <label>Notes</label>
                 <textarea id="addNotes" rows="3" placeholder="Any notes about this application..."></textarea>
             </div>
             <div class="modal-actions">
                 <button class="btn" onclick="addApplication()">Add</button>
+                <button class="btn secondary" onclick="estimateSalary()">Estimate Salary</button>
                 <button class="btn secondary" onclick="closeModals()">Cancel</button>
             </div>
         </div>
@@ -197,10 +202,39 @@
             document.getElementById('editModal').classList.remove('active');
         }
 
+        async function estimateSalary() {
+            const position = document.getElementById('addPosition').value.trim();
+            const company = document.getElementById('addCompany').value.trim();
+            if (!position) {
+                alert('Please enter a position first');
+                return;
+            }
+            try {
+                const resp = await fetch('/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `resume_text=Experienced professional seeking ${position} role&job_description=${company} ${position}&mode=salary`
+                });
+                const html = await resp.text();
+                const match = html.match(/"salary_range":\s*\{[^}]+\}/);
+                if (match) {
+                    const range = JSON.parse('{' + match[0] + '}').salary_range;
+                    const min = Math.round(range.minimum / 1000);
+                    const max = Math.round(range.maximum / 1000);
+                    document.getElementById('addSalary').value = `$${min}K-$${max}K`;
+                } else {
+                    alert('Could not estimate salary. Please enter manually.');
+                }
+            } catch (err) {
+                alert('Salary estimation failed. Please enter manually.');
+            }
+        }
+
         async function addApplication() {
             const company = document.getElementById('addCompany').value.trim();
             const position = document.getElementById('addPosition').value.trim();
             const job_url = document.getElementById('addUrl').value.trim();
+            const salary = document.getElementById('addSalary').value.trim();
             const notes = document.getElementById('addNotes').value.trim();
 
             if (!company || !position) {
@@ -212,7 +246,7 @@
                 const response = await fetch('/api/tracker/applications', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ company, position, job_url, notes })
+                    body: JSON.stringify({ company, position, job_url, salary, notes })
                 });
 
                 const data = await response.json();
