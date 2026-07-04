@@ -275,3 +275,59 @@ def add_randomness(data: dict) -> dict:
         data['ats_score'] = max(0, min(100, data['ats_score'] + variation))
 
     return data
+
+
+def validate_no_fabrication(original_text: str, optimized_text: str) -> str:
+    """Validate that AI hasn't fabricated data in optimized resume.
+
+    Args:
+        original_text: Original resume text.
+        optimized_text: AI-optimized resume text.
+
+    Returns:
+        Validated text with fabricated data removed.
+    """
+    import re
+
+    # Extract numbers from original
+    original_numbers = set(re.findall(r'\d+', original_text))
+
+    # Find numbers in optimized text that weren't in original
+    optimized_numbers = re.findall(r'\d+', optimized_text)
+
+    # Check for fabricated percentages
+    percentages = re.findall(r'(\d+)%', optimized_text)
+    for pct in percentages:
+        if pct not in original_numbers and f"{pct}%" not in original_text:
+            # This percentage might be fabricated
+            optimized_text = optimized_text.replace(f"{pct}%", "[USER_DATA]")
+
+    # Check for fabricated dollar amounts
+    dollar_amounts = re.findall(r'\$[\d,]+', optimized_text)
+    for amt in dollar_amounts:
+        clean_amt = amt.replace('$', '').replace(',', '')
+        if clean_amt not in original_numbers and amt not in original_text:
+            optimized_text = optimized_text.replace(amt, "[USER_DATA]")
+
+    return optimized_text
+
+
+def extract_original_numbers(text: str) -> dict:
+    """Extract all numbers from original resume for validation.
+
+    Args:
+        text: Resume text.
+
+    Returns:
+        Dictionary with extracted numbers and their contexts.
+    """
+    import re
+
+    numbers = {
+        'percentages': re.findall(r'(\d+)%', text),
+        'dollar_amounts': re.findall(r'\$[\d,]+', text),
+        'user_counts': re.findall(r'(\d+)\s*(users|customers|employees)', text, re.IGNORECASE),
+        'years': re.findall(r'(\d+)\s*(years?|yrs?)', text, re.IGNORECASE)
+    }
+
+    return numbers

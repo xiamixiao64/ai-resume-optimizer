@@ -480,6 +480,11 @@ TARGET JOB:
             data["optimized_resume"] = format_structured_resume(data)
         elif "optimized_resume" in data and isinstance(data["optimized_resume"], dict):
             data["optimized_resume"] = format_resume_dict(data["optimized_resume"])
+
+        # Validate no fabricated data
+        if "optimized_resume" in data and data["optimized_resume"]:
+            from services.ai import validate_no_fabrication
+            data["optimized_resume"] = validate_no_fabrication(resume_text, data["optimized_resume"])
         for field in ["ats_score", "optimized_resume", "improvements", "keyword_match", "missing_keywords"]:
             if field not in data:
                 data[field] = [] if field in ["improvements", "keyword_match", "missing_keywords"] else (65 if field == "ats_score" else "")
