@@ -136,6 +136,7 @@ class ATSEngine:
         education = self.check_education(resume_text)
         contact = self.check_contact(resume_text)
         portfolio = self.check_portfolio(resume_text)
+        personal_info = self.check_personal_info(resume_text)
         ats_type = self.identify_ats(jd_text)
 
         # 合并关键词和语义匹配分数
@@ -153,7 +154,7 @@ class ATSEngine:
 
         # 生成改进建议
         improvements = self._generate_improvements(
-            formatting, keywords, semantic, experience, education, contact, portfolio, ats_type
+            formatting, keywords, semantic, experience, education, contact, portfolio, personal_info, ats_type
         )
 
         return {
@@ -165,7 +166,8 @@ class ATSEngine:
                 "experience": experience,
                 "education": education,
                 "contact": contact,
-                "portfolio": portfolio
+                "portfolio": portfolio,
+                "personal_info": personal_info
             },
             "improvements": improvements,
             "ats_type": ats_type
@@ -173,7 +175,7 @@ class ATSEngine:
 
     def _generate_improvements(self, formatting: dict, keywords: dict, semantic: dict,
                                experience: dict, education: dict, contact: dict,
-                               portfolio: dict, ats_type: dict) -> list:
+                               portfolio: dict, personal_info: dict, ats_type: dict) -> list:
         """Generate improvement suggestions based on analysis results.
 
         Args:
@@ -213,6 +215,10 @@ class ATSEngine:
 
         if portfolio["issues"]:
             improvements.extend(portfolio["issues"][:1])
+
+        # 公平性建议
+        if personal_info.get("issues"):
+            improvements.extend(personal_info["issues"])
 
         # 添加 ATS 特定建议
         if ats_type["type"] != "unknown" and ats_type["tips"]:
@@ -1034,3 +1040,47 @@ class ATSEngine:
             score = min(50, score + 25)
 
         return {"score": score, "issues": issues, "links": found_links}
+
+    def check_personal_info(self, resume_text: str) -> dict:
+        """Check for unnecessary personal information that may cause bias.
+
+        Does not deduct score - only provides advice.
+        """
+        issues = []
+        text_lower = resume_text.lower()
+
+        # 年龄/生日
+        age_patterns = [
+            r'\b(19|20)\d{2}[-/年.]\d{1,2}[-/月.]\d{1,2}',
+            r'\b\d{1,2}\s*(岁|years?\s*old)\b',
+            r'\b(birth|出生|生日)\s*[:：]?\s*\d',
+        ]
+        for pattern in age_patterns:
+            if re.search(pattern, text_lower):
+                issues.append("建议删除年龄/生日信息，ATS不需要且可能引起偏见")
+                break
+
+        # 性别/婚姻状况
+        gender_keywords = ['男', '女', '已婚', '未婚', '单身', '离异',
+                          'male', 'female', 'married', 'single', 'divorced',
+                          'gender', 'sex']
+        if any(kw in text_lower for kw in gender_keywords):
+            issues.append("建议删除性别/婚姻状况信息，与工作能力无关")
+
+        # 照片
+        photo_keywords = ['photo', '照片', '证件照', '头像', '近照']
+        if any(kw in text_lower for kw in photo_keywords):
+            issues.append("建议删除照片，ATS无法解析且可能引起偏见")
+
+        # 宗教/政治
+        sensitive_keywords = ['religion', '宗教', '政治', 'political', 'party member',
+                             '党员', '民主党', '共和党', 'christian', 'muslim', 'buddhist']
+        if any(kw in text_lower for kw in sensitive_keywords):
+            issues.append("建议删除宗教/政治信息，与工作能力无关")
+
+        # 国籍/民族
+        nationality_keywords = ['国籍', '民族', 'nationality', 'ethnicity', 'race']
+        if any(kw in text_lower for kw in nationality_keywords):
+            issues.append("建议删除国籍/民族信息，可能引起偏见")
+
+        return {"issues": issues}

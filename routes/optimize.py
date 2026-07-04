@@ -236,6 +236,16 @@ def optimize():
 主要问题：{', '.join(ats_result['improvements'][:3])}
 缺失关键词：{', '.join(ats_result['breakdown']['keywords']['missing'][:5])}
 
+评分标准：
+- HIGH (80-100): 完全符合ATS要求，关键词匹配度高
+- MEDIUM (60-79): 基本符合，有改进空间
+- LOW (0-59): 需要重大改进
+
+公平性约束：
+- 评分不应基于姓名、学校名称、地点
+- 只关注技能、经验、项目质量
+- 每个评分必须给出具体证据
+
 返回严格JSON（不要添加任何其他文本）：
 {{
   "optimized_resume": "针对主要问题优化后的完整简历文本",
@@ -250,7 +260,8 @@ def optimize():
 1. 针对评分最低的维度重点优化
 2. 补充缺失的关键词到简历中
 3. 优化bullet points的量化数据和动词
-4. 不要编造数据"""
+4. 不要编造数据
+5. 每个建议必须给出具体原因"""
         ai_data = parse_ai_json(call_ai(ai_prompt, "你是ATS优化专家。只返回严格JSON，无markdown。"))
 
         data = {
@@ -440,6 +451,16 @@ RESUME:
 TARGET JOB:
 """ + jd + """
 
+评分标准（每个维度0-100分）：
+- HIGH (80-100): 完全符合ATS要求，无需改进
+- MEDIUM (60-79): 基本符合，有改进空间
+- LOW (0-59): 需要重大改进
+
+公平性约束：
+- 评分不应基于姓名、学校名称、地理位置
+- 只关注技能匹配度、经验相关性、项目质量
+- 每个评分必须给出具体证据
+
 返回严格JSON格式（不要添加任何其他文本）：
 {
   "ats_score": 82,
@@ -484,8 +505,9 @@ TARGET JOB:
 7. bullet点以行动动词开头
 8. 每个bullet说明具体改了什么、为什么改
 9. score_breakdown 各维度 0-100 分，必须包含所有4个维度
-10. 软技能关键词必须翻译成英文：teamwork, communication, leadership, problem-solving"""
-        system_msg = "You are an expert ATS optimization specialist. Return strict JSON only. ALL keywords MUST be in English, never translate to Chinese."
+10. 软技能关键词必须翻译成英文：teamwork, communication, leadership, problem-solving
+11. 每个改进建议必须给出具体原因和预期效果"""
+        system_msg = "You are an expert ATS optimization specialist. Return strict JSON only. ALL keywords MUST be in English, never translate to Chinese. Scores must be based on evidence, not personal characteristics."
         data = parse_ai_json(call_ai(prompt, system_msg))
 
         # Post-process
