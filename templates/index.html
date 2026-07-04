@@ -108,6 +108,8 @@
         @media (max-width: 640px) { .hero h1 { font-size: 2rem; } .features { grid-template-columns: 1fr; } .stats { flex-direction: column; gap: 16px; } .testimonial-grid { grid-template-columns: 1fr; } }
         #feedbackPopup { display: none !important; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 100; }
         #feedbackPopup.show { display: block !important; }
+        #onboardingModal { display: none; }
+        #onboardingModal.active { display: flex !important; }
     </style>
 </head>
 <body>

@@ -133,7 +133,8 @@
                     </div>
                     <div class="input-group">
                         <label>Password</label>
-                        <input type="password" name="password" placeholder="6+ characters" required minlength="6">
+                        <input type="password" name="password" placeholder="8+ characters, uppercase + lowercase + number" required minlength="8" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+                        <small style="color:#666;font-size:0.8rem;margin-top:4px;display:block">At least 8 characters with uppercase, lowercase, and number</small>
                     </div>
                     <button type="submit" class="btn">Create Account</button>
                 </form>

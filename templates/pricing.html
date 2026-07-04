@@ -46,7 +46,8 @@
         .faq-item.open .faq-q span { transform: rotate(180deg); }
         .faq-q span { transition: transform 0.2s; }
         @media (max-width: 768px) { .pricing-grid { grid-template-columns: 1fr; } }
-        #feedbackPopup.show { display: block; }
+        #feedbackPopup { display: none; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 100; }
+        #feedbackPopup.show { display: block !important; }
     </style>
 </head>
 <body>
@@ -141,7 +142,7 @@
             
             <div class="faq-item">
                 <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's the difference between Pro and Lifetime? <span>▼</span></div>
-                <div class="faq-a">Pro is a monthly subscription at $9.9/month. Lifetime is a one-time payment of $149 that gives you permanent access to all current and future features. Lifetime saves you over $100 compared to 12 months of Pro.</div>
+                <div class="faq-a">Pro is a monthly subscription at $14.9/month. Lifetime is a one-time payment of $149 that gives you permanent access to all current and future features. Lifetime saves you over $100 compared to 12 months of Pro.</div>
             </div>
         </div>
     </div>
