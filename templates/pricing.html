@@ -163,6 +163,32 @@
                 alert('Error creating checkout. Please try again.');
             }
         }
+
+        // Feedback functions
+        function toggleFeedback() {
+            document.getElementById('feedbackPopup').classList.toggle('show');
+        }
+        function submitFeedback() {
+            const text = document.getElementById('feedbackText').value;
+            if (text.trim()) {
+                fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({feedback: text, page: 'pricing'})
+                });
+                alert('Thanks for your feedback!');
+                document.getElementById('feedbackText').value = '';
+                document.getElementById('feedbackPopup').classList.remove('show');
+            }
+        }
     </script>
+
+    <!-- Feedback Button -->
+    <button onclick="toggleFeedback()" style="position:fixed; bottom:20px; right:20px; background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; border:none; border-radius:50px; padding:12px 20px; cursor:pointer; font-weight:600; box-shadow:0 4px 15px rgba(99,102,241,0.3); z-index:100;">Feedback</button>
+    <div id="feedbackPopup" style="display:none; position:fixed; bottom:80px; right:20px; background:#111; border:1px solid #333; border-radius:16px; padding:24px; width:320px; z-index:100;">
+        <h4 style="color:#fff; margin-bottom:16px;">Send Feedback</h4>
+        <textarea id="feedbackText" placeholder="Tell us what you think..." style="width:100%; height:100px; background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:12px; color:#e0e0e0; resize:none; margin-bottom:12px;"></textarea>
+        <button onclick="submitFeedback()" style="width:100%; padding:12px; background:#6366f1; border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600;">Submit</button>
+    </div>
 </body>
 </html>
