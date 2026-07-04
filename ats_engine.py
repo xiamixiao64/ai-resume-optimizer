@@ -620,15 +620,25 @@ class ATSEngine:
         return min(10, bonus)
 
     def check_semantic_match(self, resume_text, jd_text):
-        """语义匹配检查 - 使用相似度算法和技能组匹配"""
+        """语义匹配检查 - 使用BERT语义匹配和技能组匹配"""
         resume_lower = resume_text.lower()
         jd_lower = jd_text.lower()
 
-        # 1. 文本相似度
-        similarity = SequenceMatcher(None, resume_lower, jd_lower).ratio()
-        text_score = min(100, int(similarity * 100 * 2))  # 归一化到0-100
+        # 尝试使用BERT语义匹配
+        bert_score = 50  # 默认分数
+        bert_analysis = ""
+        try:
+            from services.bert_matcher import calculate_semantic_similarity
+            bert_result = calculate_semantic_similarity(resume_text, jd_text)
+            bert_score = bert_result.get("score", 50)
+            bert_analysis = bert_result.get("analysis", "")
+        except Exception as e:
+            # 回退到传统方法
+            logger.warning(f"BERT matching failed, falling back to SequenceMatcher: {e}")
+            similarity = SequenceMatcher(None, resume_lower, jd_lower).ratio()
+            bert_score = min(100, int(similarity * 100 * 2))
 
-        # 2. 技能组匹配
+        # 技能组匹配
         matched_groups = []
         related_missing = {}
 
@@ -647,17 +657,18 @@ class ATSEngine:
                 else:
                     related_missing[group_name] = jd_has
 
-        # 3. 计算语义分数
+        # 技能组分数
         group_score = min(100, int(len(matched_groups) / max(1, len(related_missing) + len(matched_groups)) * 100))
 
-        # 综合分数
-        semantic_score = min(100, int(text_score * 0.4 + group_score * 0.6))
+        # 综合分数 (BERT 70% + 技能组 30%)
+        semantic_score = min(100, int(bert_score * 0.7 + group_score * 0.3))
 
         return {
             "score": semantic_score,
-            "text_similarity": round(similarity * 100, 1),
+            "text_similarity": round(bert_score, 1),
             "matched_groups": matched_groups,
-            "related_missing": related_missing
+            "related_missing": related_missing,
+            "bert_analysis": bert_analysis
         }
 
     def check_experience(self, resume_text: str) -> dict:
