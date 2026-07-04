@@ -4,6 +4,33 @@ from services.storage import login_user, register_user
 
 auth_bp = Blueprint('auth', __name__)
 
+# In-memory IP tracking for rate limiting
+_ip_registrations = {}
+
+
+def check_ip_registration_limit(ip):
+    """Check if IP has exceeded registration limit (3 per day)"""
+    import datetime
+    now = datetime.datetime.now()
+    today = now.strftime('%Y-%m-%d')
+
+    if ip not in _ip_registrations:
+        _ip_registrations[ip] = []
+
+    # Remove old entries (older than 24 hours)
+    _ip_registrations[ip] = [
+        t for t in _ip_registrations[ip]
+        if (now - t).total_seconds() < 86400
+    ]
+
+    # Check limit
+    if len(_ip_registrations[ip]) >= 3:
+        return False
+
+    # Record this registration
+    _ip_registrations[ip].append(now)
+    return True
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -23,6 +50,12 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
+
+        # Check IP rate limit
+        ip = request.remote_addr
+        if not check_ip_registration_limit(ip):
+            return render_template('register.html', error='Registration limit reached. Please try again later.')
+
         if not email or not password:
             return render_template('register.html', error='Email and password required')
         if len(password) < 6:
