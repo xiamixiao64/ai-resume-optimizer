@@ -59,13 +59,10 @@ app.register_blueprint(features_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(seo_bp)
 
-# Only exempt specific API routes from CSRF, not entire blueprints
+# CSRF exemptions for API endpoints (forms still protected)
 if csrf:
-    # Exempt only API endpoints that need CSRF bypass (e.g., webhooks)
-    @csrf.exempt
-    def webhook_csrf():
-        pass
-    csrf.exempt(optimize_bp)  # Keep for now, but should be removed in future
+    csrf.exempt(optimize_bp)
+    csrf.exempt(features_bp)
 
 # Apply rate limits to auth routes
 app.view_functions['auth.login'] = limiter.limit("5 per minute")(app.view_functions['auth.login'])
