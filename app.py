@@ -51,6 +51,7 @@ app.register_blueprint(seo_bp)
 if csrf:
     csrf.exempt(optimize_bp)
     csrf.exempt(features_bp)
+    csrf.exempt(auth_bp)
 
 # Apply rate limits to auth routes
 app.view_functions['auth.login'] = limiter.limit("5 per minute")(app.view_functions['auth.login'])
