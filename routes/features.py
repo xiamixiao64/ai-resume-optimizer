@@ -1,4 +1,5 @@
 """Feature routes - Jobs, LinkedIn, Templates, Batch, History"""
+import os
 import random
 import logging
 from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
@@ -256,9 +257,18 @@ def submit_feedback():
     logger.info(f"Feedback received: {feedback[:100]}... (page={page}, score={score})")
 
     # Send email notification to owner
+    email_status = 'skipped'
+    email_error = None
     try:
         import smtplib
         from email.mime.text import MIMEText
+
+        smtp_host = os.environ.get('SMTP_HOST', '')
+        smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        smtp_user = os.environ.get('SMTP_USER', '')
+        smtp_pass = os.environ.get('SMTP_PASSWORD', '')
+
+        logger.info(f"SMTP config: host={smtp_host}, port={smtp_port}, user={smtp_user}, pass_set={bool(smtp_pass)}")
 
         owner_email = 'xiamixiao64@gmail.com'
         subject = f'ResumeForge AI Feedback - {page or "General"}'
@@ -275,16 +285,26 @@ Message:
 
         msg = MIMEText(body)
         msg['Subject'] = subject
-        msg['From'] = 'noreply@resumeforge.ai'
+        msg['From'] = smtp_user or 'noreply@resumeforge.ai'
         msg['To'] = owner_email
 
-        # Note: In production, configure SMTP server
-        # For now, just log the email content
-        logger.info(f"Email notification: {subject}")
+        if smtp_host and smtp_user and smtp_pass:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+                server.set_debuglevel(1)
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            email_status = 'sent'
+            logger.info(f"Email sent: {subject}")
+        else:
+            email_status = 'no_config'
+            logger.warning(f"SMTP not configured, email not sent: {subject}")
     except Exception as e:
+        email_status = 'failed'
+        email_error = str(e)
         logger.error(f"Failed to send email: {e}")
 
-    return jsonify({'status': 'ok', 'message': 'Thank you for your feedback!'})
+    return jsonify({'status': 'ok', 'message': 'Thank you for your feedback!', 'email': email_status, 'email_error': email_error})
 
 
 # ==================== ATS Detector ====================
