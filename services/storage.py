@@ -4,6 +4,7 @@ import uuid
 import datetime
 import logging
 from typing import Optional, Tuple
+from urllib.parse import quote
 import requests as http_requests
 from flask import session
 
@@ -53,19 +54,23 @@ def _supabase_request(method, table, data=None, filters=None):
         if method == "GET":
             if filters:
                 for key, value in filters.items():
-                    url += f"&{key}=eq.{value}" if "?" in url else f"?{key}=eq.{value}"
+                    # URL-encode filter values to prevent injection
+                    encoded_value = quote(str(value), safe='')
+                    url += f"&{key}=eq.{encoded_value}" if "?" in url else f"?{key}=eq.{encoded_value}"
             resp = http_requests.get(url, headers=headers, timeout=10)
         elif method == "POST":
             resp = http_requests.post(url, headers=headers, json=data, timeout=10)
         elif method == "PATCH":
             if filters:
                 for key, value in filters.items():
-                    url += f"&{key}=eq.{value}" if "?" in url else f"?{key}=eq.{value}"
+                    encoded_value = quote(str(value), safe='')
+                    url += f"&{key}=eq.{encoded_value}" if "?" in url else f"?{key}=eq.{encoded_value}"
             resp = http_requests.patch(url, headers=headers, json=data, timeout=10)
         elif method == "DELETE":
             if filters:
                 for key, value in filters.items():
-                    url += f"&{key}=eq.{value}" if "?" in url else f"?{key}=eq.{value}"
+                    encoded_value = quote(str(value), safe='')
+                    url += f"&{key}=eq.{encoded_value}" if "?" in url else f"?{key}=eq.{encoded_value}"
             resp = http_requests.delete(url, headers=headers, timeout=10)
         else:
             return None

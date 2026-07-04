@@ -784,7 +784,8 @@ def create_checkout():
             return jsonify({'checkout_url': data['data']['attributes']['url']})
         return jsonify({'error': 'Failed to create checkout', 'details': data}), 500
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Checkout error: {e}")
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
 
 
 @optimize_bp.route('/api/webhook', methods=['POST'])

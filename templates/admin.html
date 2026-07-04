@@ -98,7 +98,10 @@
                 // Event breakdown list
                 const breakdown = document.getElementById('eventBreakdown');
                 eventLabels.forEach((label, i) => {
-                    breakdown.innerHTML += '<div class="event-item"><span class="event-type">' + label + '</span><span class="event-count">' + eventValues[i] + '</span></div>';
+                    // Escape HTML to prevent XSS
+                    const escapedLabel = label.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+                    const escapedCount = String(eventValues[i]).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+                    breakdown.innerHTML += '<div class="event-item"><span class="event-type">' + escapedLabel + '</span><span class="event-count">' + escapedCount + '</span></div>';
                 });
             } catch (err) {
                 console.error('Failed to load stats:', err);

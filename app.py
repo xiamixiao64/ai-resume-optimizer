@@ -1,5 +1,6 @@
 """ResumeForge AI - Main Application"""
 import os
+import secrets
 import datetime
 import logging
 from flask import Flask
@@ -12,11 +13,22 @@ load_dotenv()
 
 # App setup
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY')
-if not app.secret_key:
-    raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
+
+# Secret key: use env var or generate a random one (for development only)
+secret_key = os.environ.get('FLASK_SECRET_KEY')
+if not secret_key:
+    if os.environ.get('FLASK_DEBUG', 'false').lower() == 'true':
+        secret_key = secrets.token_hex(32)
+        logger.warning("Using generated secret key - set FLASK_SECRET_KEY in production!")
+    else:
+        raise RuntimeError("FLASK_SECRET_KEY environment variable is required in production")
+
+app.secret_key = secret_key
+
+# Session security
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_DEBUG', 'false').lower() != 'true'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 
@@ -24,7 +36,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day"])
 logger = logging.getLogger(__name__)
 
-# CSRF Protection (disabled in development mode)
+# CSRF Protection - enabled in production, can be disabled for development
 CSRF_ENABLED = os.environ.get('CSRF_ENABLED', 'true').lower() == 'true'
 csrf = CSRFProtect(app) if CSRF_ENABLED else None
 if not CSRF_ENABLED:
@@ -47,11 +59,13 @@ app.register_blueprint(features_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(seo_bp)
 
-# Exempt API endpoints from CSRF (must be after blueprint registration)
+# Only exempt specific API routes from CSRF, not entire blueprints
 if csrf:
-    csrf.exempt(optimize_bp)
-    csrf.exempt(features_bp)
-    csrf.exempt(auth_bp)
+    # Exempt only API endpoints that need CSRF bypass (e.g., webhooks)
+    @csrf.exempt
+    def webhook_csrf():
+        pass
+    csrf.exempt(optimize_bp)  # Keep for now, but should be removed in future
 
 # Apply rate limits to auth routes
 app.view_functions['auth.login'] = limiter.limit("5 per minute")(app.view_functions['auth.login'])
@@ -70,7 +84,21 @@ def set_security_headers(response):
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+
+    # HSTS - only in production
+    if os.environ.get('FLASK_DEBUG', 'false').lower() != 'true':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+
+    # CSP - strict policy
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'"
+    )
     return response
 
 
