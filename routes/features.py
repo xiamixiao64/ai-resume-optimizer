@@ -256,49 +256,49 @@ def submit_feedback():
     # Log feedback
     logger.info(f"Feedback received: {feedback[:100]}... (page={page}, score={score})")
 
-    # Send email notification to owner
+    # Send email notification via Resend API
     email_status = 'skipped'
     email_error = None
     try:
-        import smtplib
-        from email.mime.text import MIMEText
+        import requests as http_requests
 
-        smtp_host = os.environ.get('SMTP_HOST', '')
-        smtp_port = int(os.environ.get('SMTP_PORT', '587'))
-        smtp_user = os.environ.get('SMTP_USER', '')
-        smtp_pass = os.environ.get('SMTP_PASSWORD', '')
-
-        logger.info(f"SMTP config: host={smtp_host}, port={smtp_port}, user={smtp_user}, pass_set={bool(smtp_pass)}")
-
+        resend_api_key = os.environ.get('RESEND_API_KEY', '')
         owner_email = 'xiamixiao64@gmail.com'
         subject = f'ResumeForge AI Feedback - {page or "General"}'
-        body = f"""
-Feedback from ResumeForge AI:
+        body = f"""Feedback from ResumeForge AI:
 
 Page: {page or 'N/A'}
 Score: {score or 'N/A'}
 User ID: {user_id or 'Anonymous'}
 
 Message:
-{feedback}
-        """
+{feedback}"""
 
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = smtp_user or 'noreply@resumeforge.ai'
-        msg['To'] = owner_email
-
-        if smtp_host and smtp_user and smtp_pass:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-                server.set_debuglevel(1)
-                server.starttls()
-                server.login(smtp_user, smtp_pass)
-                server.send_message(msg)
-            email_status = 'sent'
-            logger.info(f"Email sent: {subject}")
+        if resend_api_key:
+            resp = http_requests.post(
+                'https://api.resend.com/emails',
+                headers={
+                    'Authorization': f'Bearer {resend_api_key}',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'from': 'onboarding@resend.dev',
+                    'to': owner_email,
+                    'subject': subject,
+                    'text': body
+                },
+                timeout=10
+            )
+            if resp.status_code == 200:
+                email_status = 'sent'
+                logger.info(f"Email sent via Resend: {subject}")
+            else:
+                email_status = 'failed'
+                email_error = f"Resend API error {resp.status_code}: {resp.text[:200]}"
+                logger.error(email_error)
         else:
             email_status = 'no_config'
-            logger.warning(f"SMTP not configured, email not sent: {subject}")
+            logger.warning("RESEND_API_KEY not configured")
     except Exception as e:
         email_status = 'failed'
         email_error = str(e)
