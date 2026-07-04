@@ -349,10 +349,85 @@ def generate_interview_prep(skills: List[str], job_type: str = "technical") -> D
     your_questions = get_interviewer_questions(4)
     tips = get_tips("technical" if job_type == "technical" else "behavioral")
     
+    # Add salary and remote questions
+    salary_questions = SALARY_QUESTIONS[:2]
+    remote_questions = REMOTE_QUESTIONS[:2]
+    
     return {
         "technical_questions": technical,
         "behavioral_questions": behavioral,
         "company_questions": company,
         "your_questions": your_questions,
+        "salary_questions": salary_questions,
+        "remote_questions": remote_questions,
         "tips": tips
     }
+
+
+# Common salary negotiation questions
+SALARY_QUESTIONS = [
+    {
+        "question": "What are your salary expectations?",
+        "answer_guide": "Research market rate first. Give a range based on experience. Say: 'Based on my research and experience, I'm looking for $X-Y, but I'm open to discussing the total compensation package.'",
+        "category": "negotiation"
+    },
+    {
+        "question": "What is your current salary?",
+        "answer_guide": "Optional to answer depending on location laws. If asked: 'I'm focused on the value I can bring to this role rather than my current compensation. What's the budget for this position?'",
+        "category": "negotiation"
+    },
+    {
+        "question": "Why should we pay you more than other candidates?",
+        "answer_guide": "Highlight unique value: specific skills, experience level, certifications, or accomplishments that justify higher compensation.",
+        "category": "negotiation"
+    }
+]
+
+# Remote work specific questions
+REMOTE_QUESTIONS = [
+    {
+        "question": "How do you stay productive working remotely?",
+        "answer_guide": "Mention: dedicated workspace, time blocking, communication tools (Slack, Zoom), regular check-ins, and work-life boundaries.",
+        "category": "remote"
+    },
+    {
+        "question": "How do you handle collaboration across time zones?",
+        "answer_guide": "Discuss: async communication practices, overlap hours, documentation habits, and tools used for distributed teams.",
+        "category": "remote"
+    },
+    {
+        "question": "What's your home office setup?",
+        "answer_guide": "Describe: dedicated space, reliable internet, necessary equipment, and how you minimize distractions.",
+        "category": "remote"
+    }
+]
+
+# Industry-specific questions
+INDUSTRY_QUESTIONS = {
+    "tech": [
+        {
+            "question": "Tell me about a time you debugged a complex production issue.",
+            "answer_guide": "STAR: Describe the problem, your debugging process, tools used, and resolution.",
+            "category": "technical"
+        },
+        {
+            "question": "How do you stay current with new technologies?",
+            "answer_guide": "Mention: blogs, courses, side projects, open source contributions, tech talks.",
+            "category": "learning"
+        }
+    ],
+    "finance": [
+        {
+            "question": "How do you ensure accuracy in financial reporting?",
+            "answer_guide": "Discuss: attention to detail, verification processes, tools used, and error prevention.",
+            "category": "accuracy"
+        }
+    ],
+    "healthcare": [
+        {
+            "question": "How do you handle sensitive patient information?",
+            "answer_guide": "Discuss: HIPAA compliance, data security practices, confidentiality protocols.",
+            "category": "compliance"
+        }
+    ]
+}
