@@ -515,32 +515,50 @@ class ATSEngine:
         matched = []
         missing = []
         synonym_matches = 0
+        weighted_score = 0
+        total_weight = 0
 
-        for keyword in jd_keywords:
+        for kw_info in jd_keywords:
+            keyword = kw_info["keyword"]
+            importance = kw_info["importance"]
+            total_weight += importance
+
             if keyword.lower() in resume_lower:
                 matched.append(keyword)
+                weighted_score += importance
             else:
                 # Check for synonyms
                 found_synonym = False
                 for main_word, synonyms in SYNONYM_GROUPS.items():
                     if keyword.lower() == main_word or keyword.lower() in synonyms:
-                        for syn in synonyms:
-                            if syn in resume_lower:
+                        all_variants = [main_word] + synonyms
+                        for variant in all_variants:
+                            if variant in resume_lower:
                                 synonym_matches += 1
+                                weighted_score += importance * 0.5  # Synonyms count half
                                 found_synonym = True
                                 break
-                    if found_synonym:
-                        break
                 if not found_synonym:
                     missing.append(keyword)
 
-        if len(jd_keywords) == 0:
+        # Also check resume synonyms against JD
+        for main_word, synonyms in SYNONYM_GROUPS.items():
+            all_variants = [main_word] + synonyms
+            jd_has = any(v in jd_text.lower() for v in all_variants)
+            if jd_has:
+                resume_has = any(v in resume_lower for v in all_variants)
+                if resume_has and main_word not in matched:
+                    already_counted = any(v in matched for v in all_variants)
+                    if not already_counted:
+                        synonym_matches += 1
+
+        if total_weight == 0:
             score = 70
+            weighted_match_rate = 0.7
         else:
-            # Direct matches count full, synonym matches count partial
-            direct_match_rate = len(matched) / len(jd_keywords)
-            synonym_bonus = (synonym_matches / len(jd_keywords)) * 0.3
-            score = min(100, int((direct_match_rate + synonym_bonus) * 100))
+            weighted_match_rate = weighted_score / total_weight
+            synonym_bonus = min(0.2, (synonym_matches / max(1, len(jd_keywords))) * 0.2)
+            score = min(100, int((weighted_match_rate + synonym_bonus) * 100))
 
         bonus = self._calculate_position_bonus(matched, resume_text)
         score = min(100, score + bonus)
@@ -549,27 +567,36 @@ class ATSEngine:
             "score": score,
             "matched": matched,
             "missing": missing,
-            "synonym_matches": synonym_matches
+            "synonym_matches": synonym_matches,
+            "weighted_score": round(weighted_match_rate * 100, 1)
         }
 
     def _extract_keywords(self, text: str) -> list:
-        """Extract keywords from text.
+        """Extract keywords from text with importance weighting.
 
         Args:
             text: Text to extract keywords from.
 
         Returns:
-            List of found keywords.
+            List of found keywords with importance weights.
         """
         all_keywords = TECH_KEYWORDS + SOFT_KEYWORDS
         text_lower = text.lower()
+        text_words = text.lower().split()
 
-        found = [kw for kw in all_keywords if kw in text_lower]
+        found = []
+        for kw in all_keywords:
+            if kw in text_lower:
+                # Calculate importance based on frequency
+                freq = text_lower.count(kw)
+                importance = min(1.0, 0.5 + (freq * 0.1))
+                found.append({"keyword": kw, "importance": importance})
 
+        # Extract capitalized words as potential keywords
         words = text.split()
         for word in words:
-            if word.isupper() and len(word) > 2 and word.lower() not in found:
-                found.append(word)
+            if word.isupper() and len(word) > 2 and word.lower() not in [f["keyword"] for f in found]:
+                found.append({"keyword": word, "importance": 0.6})
 
         return found
 
@@ -698,6 +725,148 @@ class ATSEngine:
             issues.append("Bullet points 过长，建议控制在 20 词以内")
 
         return {"score": max(0, score), "issues": issues, "xyz_count": xyz_formatted}
+
+    def check_resume_quality(self, resume_text: str) -> dict:
+        """Evaluate resume content quality and impact.
+
+        Args:
+            resume_text: Resume content text.
+
+        Returns:
+            Dictionary with quality score, strengths, and weaknesses.
+        """
+        score = 100
+        strengths = []
+        weaknesses = []
+        bullets = self._extract_bullets(resume_text)
+        words = resume_text.split()
+
+        # 1. Content depth - word count
+        if len(words) >= 300:
+            strengths.append("Good content depth with sufficient detail")
+        elif len(words) >= 150:
+            score -= 5
+            weaknesses.append("Content could be more detailed")
+        else:
+            score -= 15
+            weaknesses.append("Resume is too brief - add more details")
+
+        # 2. Quantified achievements
+        quantified_count = 0
+        for bullet in bullets:
+            if re.search(r'\d+%|\$[\d,]+|\d+ (users|customers|projects|team)', bullet, re.IGNORECASE):
+                quantified_count += 1
+
+        if len(bullets) > 0:
+            quantified_rate = quantified_count / len(bullets)
+            if quantified_rate >= 0.5:
+                strengths.append(f"Strong quantified achievements ({quantified_count}/{len(bullets)} bullets)")
+            elif quantified_rate >= 0.3:
+                score -= 5
+                weaknesses.append(f"Some bullets lack quantification ({quantified_count}/{len(bullets)})")
+            else:
+                score -= 15
+                weaknesses.append(f"Most bullets lack quantified achievements ({quantified_count}/{len(bullets)})")
+
+        # 3. Action verbs
+        strong_verbs_used = 0
+        for bullet in bullets:
+            bullet_lower = bullet.lower()
+            if any(bullet_lower.startswith(v) for v in STRONG_VERBS):
+                strong_verbs_used += 1
+
+        if len(bullets) > 0:
+            verb_rate = strong_verbs_used / len(bullets)
+            if verb_rate >= 0.7:
+                strengths.append("Strong action verbs throughout")
+            elif verb_rate >= 0.4:
+                score -= 5
+                weaknesses.append("Some bullet points use weak verbs")
+            else:
+                score -= 10
+                weaknesses.append("Most bullet points use weak verbs")
+
+        # 4. X-Y-Z format
+        xyz_count = 0
+        for bullet in bullets:
+            for pattern in XYZ_PATTERNS:
+                if re.search(pattern, bullet, re.IGNORECASE):
+                    xyz_count += 1
+                    break
+
+        if len(bullets) > 0:
+            xyz_rate = xyz_count / len(bullets)
+            if xyz_rate >= 0.5:
+                strengths.append("Good use of X-Y-Z format (What + How + Result)")
+            elif xyz_rate >= 0.3:
+                score -= 5
+                weaknesses.append("Some bullets could follow X-Y-Z format better")
+            else:
+                score -= 10
+                weaknesses.append("Bullets lack structured impact format")
+
+        # 5. Skills section
+        if 'skills' in resume_text.lower():
+            skills_section = resume_text.lower().split('skills')[1][:500]
+            skill_count = len([w for w in skills_section.split(',') if w.strip()])
+            if skill_count >= 5:
+                strengths.append(f"Good skills section ({skill_count} skills listed)")
+            elif skill_count >= 3:
+                score -= 3
+                weaknesses.append("Skills section could list more technologies")
+            else:
+                score -= 8
+                weaknesses.append("Skills section is too brief")
+        else:
+            score -= 10
+            weaknesses.append("Missing skills section")
+
+        # 6. Professional summary
+        summary_indicators = ['summary', 'objective', 'profile', 'about']
+        has_summary = any(ind in resume_text.lower() for ind in summary_indicators)
+        if has_summary:
+            strengths.append("Has professional summary")
+        else:
+            score -= 5
+            weaknesses.append("Missing professional summary")
+
+        # 7. Contact completeness
+        has_email = bool(re.search(EMAIL_PATTERN, resume_text))
+        has_phone = bool(re.search(PHONE_PATTERN, resume_text))
+        has_linkedin = 'linkedin' in resume_text.lower()
+
+        contact_score = sum([has_email, has_phone, has_linkedin])
+        if contact_score == 3:
+            strengths.append("Complete contact information")
+        elif contact_score == 2:
+            score -= 3
+            weaknesses.append("Missing one contact method")
+        else:
+            score -= 8
+            weaknesses.append("Incomplete contact information")
+
+        # 8. Bullet point quality
+        if len(bullets) >= 5:
+            strengths.append(f"Good number of bullet points ({len(bullets)})")
+        elif len(bullets) >= 3:
+            score -= 5
+            weaknesses.append(f"Could add more bullet points ({len(bullets)}/5+)")
+        else:
+            score -= 10
+            weaknesses.append(f"Too few bullet points ({len(bullets)}/5+)")
+
+        return {
+            "score": max(0, min(100, score)),
+            "strengths": strengths,
+            "weaknesses": weaknesses,
+            "metrics": {
+                "word_count": len(words),
+                "bullet_count": len(bullets),
+                "quantified_count": quantified_count,
+                "strong_verbs_count": strong_verbs_used,
+                "xyz_count": xyz_count
+            }
+        }
 
     def _extract_bullets(self, text: str) -> list:
         """Extract bullet points from resume text.
