@@ -80,7 +80,7 @@ chrome-extension/
 ## Support
 
 - Website: https://resumeforge.ai
-- Email: support@resumeforge.ai
+- Email: xiamixiao64@gmail.com
 
 ## License
 

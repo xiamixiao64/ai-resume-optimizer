@@ -7,7 +7,7 @@ setup(
     name="ats-engine",
     version="1.0.0",
     author="ResumeForge AI",
-    author_email="support@resumeforge.ai",
+    author_email="xiamixiao64@gmail.com",
     description="Open-source ATS resume analyzer with 12 ATS type detection",
     long_description=long_description,
     long_description_content_type="text/markdown",

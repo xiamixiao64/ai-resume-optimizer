@@ -12,7 +12,7 @@
 
 ## 退款流程
 
-1. 发送邮件至 support@resumeforge.ai
+1. 发送邮件至 xiamixiao64@gmail.com
 2. 提供订单号和购买邮箱
 3. 说明退款原因（可选）
 4. 3-5个工作日内处理退款

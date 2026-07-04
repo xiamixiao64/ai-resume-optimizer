@@ -157,6 +157,6 @@ A: 薪资估算是基于：
 
 ## 获取帮助
 
-- **邮箱**：support@resumeforge.ai
+- **邮箱**：xiamixiao64@gmail.com
 - **Twitter**：@ResumeForgeAI
 - **GitHub**：github.com/xiamixiao64/ai-resume-optimizer
