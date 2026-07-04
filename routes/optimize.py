@@ -151,6 +151,20 @@ def refund_policy():
     return render_template('refund_policy.html', user=user)
 
 
+@optimize_bp.route('/privacy-policy')
+def privacy_policy():
+    """Render privacy policy page"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('privacy_policy.html', user=user)
+
+
+@optimize_bp.route('/terms')
+def terms_of_service():
+    """Render terms of service page"""
+    user = get_user_by_id(session.get('user_id'))
+    return render_template('terms_of_service.html', user=user)
+
+
 @optimize_bp.route('/')
 def index():
     user = get_user_by_id(session.get('user_id'))
