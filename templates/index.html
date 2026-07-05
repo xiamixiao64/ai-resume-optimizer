@@ -216,7 +216,7 @@
                         <li style="padding:8px 0;color:#ccc">✓ Interview prep mode</li>
                         <li style="padding:8px 0;color:#ccc">✓ Salary estimation</li>
                     </ul>
-                    <a href="/pricing" style="display:block;text-align:center;margin-top:20px;padding:14px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:10px;color:#fff;text-decoration:none;font-weight:700">View Plans</a>
+                    <button onclick="checkout('monthly')" style="display:block;width:100%;text-align:center;margin-top:20px;padding:14px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:10px;color:#fff;text-decoration:none;font-weight:700;border:none;cursor:pointer;font-size:1rem">Upgrade Now</button>
                 </div>
             </div>
             <div class="optimize-right">
@@ -337,6 +337,25 @@
     </div>
 
     <script>
+        // Checkout
+        async function checkout(plan) {
+            try {
+                const resp = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan: plan })
+                });
+                const data = await resp.json();
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Payment system not configured. Please try again later.');
+                }
+            } catch (e) {
+                alert('Error creating checkout. Please try again.');
+            }
+        }
+
         // Event tracking
         function trackEvent(eventType, eventData = {}) {
             fetch('/api/track', {
