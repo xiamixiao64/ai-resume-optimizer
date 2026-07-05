@@ -38,16 +38,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
-        .hero { text-align: center; padding: 60px 20px 40px; position: relative; }
+        .hero { padding: 40px 20px 20px; position: relative; }
         .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); pointer-events: none; }
+        .hero-inner { display: flex; max-width: 1200px; margin: 0 auto; gap: 40px; align-items: center; }
+        .hero-left { flex: 1; text-align: left; position: relative; }
+        .hero-right { flex: 1; position: relative; }
         .hero h1 { font-size: 3.2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; position: relative; }
-        .hero p { font-size: 1.2rem; color: #888; max-width: 600px; margin: 0 auto 24px; position: relative; }
+        .hero p { font-size: 1.2rem; color: #888; max-width: 600px; margin-bottom: 24px; position: relative; }
         .badge { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; position: relative; }
-        .stats { display: flex; justify-content: center; gap: 50px; margin: 30px 0 40px; position: relative; }
+        .stats { display: flex; gap: 40px; margin: 30px 0; position: relative; }
         .stat { text-align: center; }
         .stat-num { font-size: 2.2rem; font-weight: 700; color: #a855f7; }
         .stat-label { font-size: 0.85rem; color: #666; }
-        .container { max-width: 800px; margin: 0 auto; padding: 0 20px 60px; }
+        .demo-video { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid #333; background: #111; }
+        .demo-video .video-placeholder { padding-top: 56.25%; position: relative; }
+        .demo-video .video-inner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1030, #111); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
         .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 32px; margin-bottom: 20px; }
         .card h2 { font-size: 1.3rem; margin-bottom: 20px; color: #fff; }
         textarea { width: 100%; min-height: 200px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; color: #e0e0e0; font-family: inherit; font-size: 0.95rem; resize: vertical; }
@@ -105,8 +111,8 @@
         .loading { display: none; text-align: center; padding: 40px; }
         .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #a855f7; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 640px) { .hero h1 { font-size: 2rem; } .features { grid-template-columns: 1fr; } .stats { flex-direction: column; gap: 16px; } .testimonial-grid { grid-template-columns: 1fr; } }
-        #feedbackPopup { display: none !important; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 100; }
+        @media (max-width: 640px) { .hero-inner { flex-direction: column; } .hero-left, .hero-right { text-align: center; } .hero h1 { font-size: 2rem; } .stats { justify-content: center; } .features { grid-template-columns: 1fr; } .testimonial-grid { grid-template-columns: 1fr; } }
+        #feedbackPopup { display: none !important; position: fixed; bottom: 80px; right: 20px; background: #111; border: 1px solid #333; border-radius: 16px; padding: 24px; width: 320px; z-index: 2500; }
         #feedbackPopup.show { display: block !important; }
         #onboardingModal { display: none; }
         #onboardingModal.active { display: flex !important; }
@@ -138,33 +144,34 @@
             <a href="/register">Register</a>
             {% endif %}
         </div>
-        <span class="badge">AI-Powered Resume Optimization</span>
-        <h1>Beat ATS Systems.<br>Land More Interviews.</h1>
-        <p>75% of resumes are rejected by ATS before a human sees them. Our AI fixes yours in 30 seconds.</p>
-        <div class="stats">
-            <div class="stat"><div class="stat-num">75%</div><div class="stat-label">resumes rejected by ATS</div></div>
-            <div class="stat"><div class="stat-num">30s</div><div class="stat-label">optimization time</div></div>
-            <div class="stat"><div class="stat-num">2.5x</div><div class="stat-label">more interviews</div></div>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- Demo Video Section -->
-        <div style="text-align:center;margin-bottom:40px">
-            <h2 style="color:#fff;margin-bottom:16px">See It In Action</h2>
-            <p style="color:#888;margin-bottom:24px">Watch how ResumeForge AI optimizes your resume in 30 seconds</p>
-            <div style="position:relative;max-width:700px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid #333;background:#111">
-                <div style="padding-top:56.25%;position:relative">
-                    <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1030,#111)">
-                        <div style="text-align:center">
-                            <div style="font-size:4rem;margin-bottom:16px">🎬</div>
-                            <p style="color:#888;font-size:1.1rem">Demo video coming soon</p>
-                            <p style="color:#666;font-size:0.9rem;margin-top:8px">Subscribe to get notified when it's ready</p>
+        <div class="hero-inner">
+            <div class="hero-left">
+                <span class="badge">AI-Powered Resume Optimization</span>
+                <h1>Beat ATS Systems.<br>Land More Interviews.</h1>
+                <p>75% of resumes are rejected by ATS before a human sees them. Our AI fixes yours in 30 seconds.</p>
+                <div class="stats">
+                    <div class="stat"><div class="stat-num">75%</div><div class="stat-label">resumes rejected</div></div>
+                    <div class="stat"><div class="stat-num">30s</div><div class="stat-label">optimization</div></div>
+                    <div class="stat"><div class="stat-num">2.5x</div><div class="stat-label">more interviews</div></div>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="demo-video">
+                    <div class="video-placeholder">
+                        <div class="video-inner">
+                            <div style="text-align:center">
+                                <div style="font-size:4rem;margin-bottom:16px">🎬</div>
+                                <p style="color:#888;font-size:1.1rem">Demo video coming soon</p>
+                                <p style="color:#666;font-size:0.9rem;margin-top:8px">Subscribe to get notified when it's ready</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="container">
         <div class="features">
             <div class="feature"><div class="icon">🎯</div><h3>ATS Score</h3><p>Get scored against real ATS filters</p></div>
             <div class="feature"><div class="icon">🔍</div><h3>ATS Type Detector</h3><p>Find which ATS the company uses</p></div>
@@ -698,8 +705,8 @@ Benefits:
     </div>
 
     <!-- Feedback Button -->
-    <button onclick="toggleFeedback()" style="position:fixed; bottom:20px; right:20px; background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; border:none; border-radius:50px; padding:12px 20px; cursor:pointer; font-weight:600; box-shadow:0 4px 15px rgba(99,102,241,0.3); z-index:100;">Feedback</button>
-    <div id="feedbackPopup" style="display:none; position:fixed; bottom:80px; right:20px; background:#111; border:1px solid #333; border-radius:16px; padding:24px; width:320px; z-index:100;">
+    <button onclick="toggleFeedback()" style="position:fixed; bottom:20px; right:20px; background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; border:none; border-radius:50px; padding:12px 20px; cursor:pointer; font-weight:600; box-shadow:0 4px 15px rgba(99,102,241,0.3); z-index:2500;">Feedback</button>
+    <div id="feedbackPopup" style="display:none; position:fixed; bottom:80px; right:20px; background:#111; border:1px solid #333; border-radius:16px; padding:24px; width:320px; z-index:2500;">
         <h4 style="color:#fff; margin-bottom:16px;">Send Feedback</h4>
         <textarea id="feedbackText" placeholder="Tell us what you think..." style="width:100%; height:100px; background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:12px; color:#e0e0e0; resize:none; margin-bottom:12px;"></textarea>
         <button onclick="submitFeedback()" style="width:100%; padding:12px; background:#6366f1; border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600;">Submit</button>
