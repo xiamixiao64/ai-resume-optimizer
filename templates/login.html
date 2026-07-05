@@ -120,6 +120,13 @@
                 </div>
                 <h1>Sign In</h1>
                 <p class="subtitle">Welcome back! Log in to access your account.</p>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="error" style="{% if category == 'success' %}background:rgba(34,197,94,0.1);color:#22c55e;border-color:rgba(34,197,94,0.3){% endif %}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
                 {% if error %}
                 <div class="error">{{ error }}</div>
                 {% endif %}

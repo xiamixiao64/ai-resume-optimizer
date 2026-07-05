@@ -67,14 +67,23 @@ if csrf:
     csrf.exempt(features_bp)
 
 # Apply rate limits to auth routes
-app.view_functions['auth.login'] = limiter.limit("5 per minute")(app.view_functions['auth.login'])
-app.view_functions['auth.register'] = limiter.limit("3 per minute")(app.view_functions['auth.register'])
-app.view_functions['optimize.upload_file'] = limiter.limit("5 per minute")(app.view_functions['optimize.upload_file'])
-app.view_functions['optimize.optimize'] = limiter.limit("10 per minute")(app.view_functions['optimize.optimize'])
-app.view_functions['optimize.api_optimize'] = limiter.limit("20 per minute")(app.view_functions['optimize.api_optimize'])
-app.view_functions['optimize.create_checkout'] = limiter.limit("5 per minute")(app.view_functions['optimize.create_checkout'])
-app.view_functions['features.match_jobs'] = limiter.limit("10 per minute")(app.view_functions['features.match_jobs'])
-app.view_functions['features.optimize_linkedin'] = limiter.limit("10 per minute")(app.view_functions['features.optimize_linkedin'])
+app.view_functions['auth.login'] = limiter.limit("30 per minute")(app.view_functions['auth.login'])
+app.view_functions['auth.register'] = limiter.limit("30 per minute")(app.view_functions['auth.register'])
+app.view_functions['optimize.upload_file'] = limiter.limit("10 per minute")(app.view_functions['optimize.upload_file'])
+app.view_functions['optimize.optimize'] = limiter.limit("30 per minute")(app.view_functions['optimize.optimize'])
+app.view_functions['optimize.api_optimize'] = limiter.limit("30 per minute")(app.view_functions['optimize.api_optimize'])
+app.view_functions['optimize.create_checkout'] = limiter.limit("10 per minute")(app.view_functions['optimize.create_checkout'])
+app.view_functions['features.match_jobs'] = limiter.limit("20 per minute")(app.view_functions['features.match_jobs'])
+app.view_functions['features.optimize_linkedin'] = limiter.limit("20 per minute")(app.view_functions['features.optimize_linkedin'])
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    from flask import flash, request, redirect, url_for, jsonify
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Too many requests. Please try again later."}), 429
+    flash("Too many requests. Please wait a moment and try again.", "error")
+    return redirect(request.referrer or url_for('optimize.index'))
 
 
 @app.after_request
