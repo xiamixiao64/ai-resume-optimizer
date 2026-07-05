@@ -141,7 +141,7 @@ def register_user(email: str, password: str) -> Tuple[Optional[str], Optional[st
     if supabase_url and supabase_key:
         existing = _supabase_request("GET", "users", filters={"email": email})
         if existing and len(existing) > 0:
-            return None, "Email already registered"
+            return None, "If this email is available, a confirmation will be sent."
         user_id = str(uuid.uuid4())
         _supabase_request("POST", "users", {
             'id': user_id, 'email': email, 'password': hash_password(password),
@@ -151,7 +151,7 @@ def register_user(email: str, password: str) -> Tuple[Optional[str], Optional[st
     else:
         for uid, u in _memory_users.items():
             if u['email'] == email:
-                return None, "Email already registered"
+                return None, "If this email is available, a confirmation will be sent."
         user_id = str(uuid.uuid4())
         _memory_users[user_id] = {
             'id': user_id, 'email': email, 'password': hash_password(password),
@@ -315,7 +315,10 @@ def save_history(record):
     """Save optimization record"""
     if supabase_url and supabase_key:
         _supabase_request("POST", "optimizations", record)
-    _history.append(record)
+    else:
+        _history.append(record)
+        if len(_history) > 10000:
+            _history[:] = _history[-10000:]
 
 
 def get_user_history(user_id, limit=50):
@@ -408,7 +411,10 @@ def save_job_application(application):
     """Save a job application record"""
     if supabase_url and supabase_key:
         _supabase_request("POST", "job_applications", application)
-    _job_applications.append(application)
+    else:
+        _job_applications.append(application)
+        if len(_job_applications) > 10000:
+            _job_applications[:] = _job_applications[-10000:]
 
 
 def get_user_job_applications(user_id, limit=100):

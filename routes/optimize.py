@@ -38,8 +38,7 @@ def expand_skills(skills: list, job_description: str) -> list:
     Returns:
         Expanded list of skills including matched keywords.
     """
-    if not skills:
-        skills = []
+    skills = list(skills) if skills else []
     if job_description:
         jd_lower = job_description.lower()
         for skill in TECH_KEYWORDS_DISPLAY:
@@ -672,7 +671,7 @@ def api_optimize():
     user_id = get_user_id()
     if not user_id:
         return jsonify({'error': 'Authentication required'}), 401
-    if not check_usage_limit(user_id):
+    if not check_and_increment_usage(user_id):
         return jsonify({'error': 'Usage limit reached'}), 403
     data = request.json
     if not data:
@@ -682,12 +681,24 @@ def api_optimize():
     mode = data.get('mode', 'optimize')
     if not resume_text:
         return jsonify({'error': 'resume required'}), 400
-    increment_usage(user_id)
     prompt = "Optimize this resume. Return JSON with: ats_score, optimized_resume, improvements, keyword_match, missing_keywords.\n\nRESUME:\n" + resume_text + "\n\nJOB DESCRIPTION:\n" + (job_description or "N/A")
     result = call_ai(prompt)
     parsed = parse_ai_json(result)
     if not parsed:
         parsed = {"ats_score": 65, "optimized_resume": "", "improvements": []}
+
+    # Validate and clamp output
+    if "ats_score" in parsed:
+        parsed["ats_score"] = max(0, min(100, int(parsed["ats_score"])))
+    if "optimized_resume" not in parsed:
+        parsed["optimized_resume"] = resume_text
+    if "improvements" not in parsed:
+        parsed["improvements"] = []
+    if "keyword_match" not in parsed:
+        parsed["keyword_match"] = []
+    if "missing_keywords" not in parsed:
+        parsed["missing_keywords"] = []
+
     return jsonify(parsed)
 
 

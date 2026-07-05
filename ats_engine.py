@@ -455,8 +455,15 @@ class ATSEngine:
             issues.append("建议使用一致的日期格式（如：Jan 2024）")
 
         # 26. No personal pronouns
-        pronouns = ['i ', 'i\'m', 'my ', 'me ']
+        pronouns = ['i\'m', 'myself']
+        word_boundary_pronouns = [r'\bi\b', r'\bme\b', r'\bmy\b']
         has_pronouns = any(p in resume_text.lower().split() for p in pronouns)
+        if not has_pronouns:
+            import re as _re
+            for pattern in word_boundary_pronouns:
+                if _re.search(pattern, resume_text.lower()):
+                    has_pronouns = True
+                    break
         if not has_pronouns:
             checks_passed += 1
         else:
@@ -481,8 +488,10 @@ class ATSEngine:
             issues.append("建议添加量化数据（百分比、金额、用户数）")
 
         # 29. No colors in text
-        color_indicators = ['color:', 'rgb(', '#', 'font color']
-        has_colors = any(ind in resume_text.lower() for ind in color_indicators)
+        color_indicators = ['color:', 'rgb(', 'font color']
+        import re as _re
+        has_hex_color = bool(_re.search(r'#[0-9a-fA-F]{6}\b', resume_text))
+        has_colors = has_hex_color or any(ind in resume_text.lower() for ind in color_indicators)
         if not has_colors:
             checks_passed += 1
         else:
