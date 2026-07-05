@@ -61,10 +61,21 @@ app.register_blueprint(features_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(seo_bp)
 
-# CSRF exemptions for API endpoints (forms still protected)
+# CSRF exemptions for API endpoints only (forms remain protected)
 if csrf:
-    csrf.exempt(optimize_bp)
-    csrf.exempt(features_bp)
+    csrf.exempt('optimize.api_optimize')
+    csrf.exempt('optimize.api_free_scan')
+    csrf.exempt('optimize.api_usage')
+    csrf.exempt('optimize.api_track')
+    csrf.exempt('optimize.api_mode_analytics')
+    csrf.exempt('optimize.api_create_checkout')
+    csrf.exempt('optimize.api_webhook')
+    csrf.exempt('optimize.api_check_usage')
+    csrf.exempt('features.api_match_jobs')
+    csrf.exempt('features.api_optimize_linkedin')
+    csrf.exempt('features.api_detect_ats')
+    csrf.exempt('features.api_estimate_salary')
+    csrf.exempt('features.api_send_feedback')
 
 # Apply rate limits to auth routes
 app.view_functions['auth.login'] = limiter.limit("10 per minute")(app.view_functions['auth.login'])
@@ -100,7 +111,7 @@ def set_security_headers(response):
     # CSP - strict policy
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self'; "
+        "script-src 'self' https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline'; "
         "img-src 'self' data: https:; "
         "font-src 'self'; "

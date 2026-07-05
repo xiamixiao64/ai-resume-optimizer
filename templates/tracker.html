@@ -100,8 +100,8 @@
                         <td>{{ app.created_at[:10] }}</td>
                         <td>
                             <div class="actions-cell">
-                                <button class="action-btn" onclick="openEditModal('{{ app.id }}', '{{ app.status }}', '{{ app.notes }}')">Edit</button>
-                                <button class="action-btn delete" onclick="deleteApp('{{ app.id }}')">Delete</button>
+                                <button class="action-btn" data-action="edit" data-id="{{ app.id }}" data-status="{{ app.status }}" data-notes="{{ app.notes }}">Edit</button>
+                                <button class="action-btn delete" data-action="delete" data-id="{{ app.id }}">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -201,6 +201,19 @@
             document.getElementById('addModal').classList.remove('active');
             document.getElementById('editModal').classList.remove('active');
         }
+
+        // Event delegation for action buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            if (action === 'edit') {
+                openEditModal(id, btn.dataset.status, btn.dataset.notes);
+            } else if (action === 'delete') {
+                deleteApp(id);
+            }
+        });
 
         async function estimateSalary() {
             const position = document.getElementById('addPosition').value.trim();

@@ -13,6 +13,7 @@ from ats_engine import ATSEngine
 from services.ai import call_ai, parse_ai_json, parse_pdf
 from services.storage import (
     get_user_by_id, get_user_id, check_usage_limit, increment_usage,
+    check_and_increment_usage,
     get_user_usage, is_pro_user, set_pro_status, track_event, save_history,
     FREE_OPTIMIZATIONS
 )
@@ -252,10 +253,9 @@ def optimize():
     user_id = get_user_id()
     if not user_id:
         return jsonify({'error': 'Please register/login first'}), 401
-    if not check_usage_limit(user_id):
+    if not check_and_increment_usage(user_id):
         return jsonify({'error': 'Free limit reached. Please upgrade to Pro.'}), 403
 
-    increment_usage(user_id)
     track_event(user_id, 'optimize_start', {'mode': mode})
 
     jd = job_description or "N/A"
@@ -727,9 +727,15 @@ def track_event_api():
 @optimize_bp.route('/api/analytics/modes')
 def get_mode_analytics():
     """Get mode usage analytics (admin only)"""
+    import os
     user_id = get_user_id()
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
+
+    user = get_user_by_id(user_id)
+    admin_email = os.environ.get('ADMIN_EMAIL', '')
+    if not user or user.get('email') != admin_email:
+        return jsonify({'error': 'Unauthorized'}), 403
 
     from services.storage import get_admin_stats
     stats = get_admin_stats()

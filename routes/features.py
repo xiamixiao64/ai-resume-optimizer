@@ -334,9 +334,27 @@ def detect_ats():
     if job_url and not job_description:
         try:
             import requests
+            from urllib.parse import urlparse
+            import ipaddress
+            import socket
+
+            parsed = urlparse(job_url)
+            if parsed.scheme not in ('https',):
+                return jsonify({'error': 'Only HTTPS URLs are allowed'}), 400
+
+            # Block private/internal IPs
+            hostname = parsed.hostname
+            if hostname:
+                try:
+                    ip = ipaddress.ip_address(socket.gethostbyname(hostname))
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                        return jsonify({'error': 'Internal/private URLs are not allowed'}), 400
+                except (socket.gaierror, ValueError):
+                    return jsonify({'error': 'Invalid URL hostname'}), 400
+
             resp = requests.get(job_url, timeout=10, headers={
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
+            }, allow_redirects=False)
             if resp.status_code == 200:
                 job_description = resp.text[:5000]  # Limit to 5000 chars
         except Exception as e:

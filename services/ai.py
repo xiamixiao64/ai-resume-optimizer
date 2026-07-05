@@ -292,7 +292,7 @@ def validate_no_fabrication(original_text: str, optimized_text: str) -> str:
     # Extract ALL numbers from original text
     original_numbers = set(re.findall(r'\d+', original_text))
     original_percentages = set(re.findall(r'(\d+)%', original_text))
-    original_dollars = set(re.findall(r'\$[\d,]+', optimized_text))
+    original_dollars = set(re.findall(r'\$[\d,]+', original_text))
 
     # Check for fabricated percentages
     percentages = re.findall(r'(\d+)%', optimized_text)

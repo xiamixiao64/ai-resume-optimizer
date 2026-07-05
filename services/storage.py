@@ -249,6 +249,27 @@ def check_usage_limit(user_id: Optional[str]) -> bool:
     return get_user_usage(user_id) < FREE_OPTIMIZATIONS
 
 
+def check_and_increment_usage(user_id: Optional[str]) -> bool:
+    """Atomically check usage limit and increment if allowed.
+
+    Args:
+        user_id: The unique user identifier, or None.
+
+    Returns:
+        True if usage was incremented, False if limit reached.
+    """
+    if not user_id:
+        return False
+    if is_pro_user(user_id):
+        increment_usage(user_id)
+        return True
+    current = get_user_usage(user_id)
+    if current >= FREE_OPTIMIZATIONS:
+        return False
+    increment_usage(user_id)
+    return True
+
+
 def set_pro_status(user_id: str, status: bool = True) -> None:
     """Set user's pro status.
 
