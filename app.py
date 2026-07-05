@@ -67,8 +67,8 @@ if csrf:
     csrf.exempt(features_bp)
 
 # Apply rate limits to auth routes
-app.view_functions['auth.login'] = limiter.limit("30 per minute")(app.view_functions['auth.login'])
-app.view_functions['auth.register'] = limiter.limit("30 per minute")(app.view_functions['auth.register'])
+app.view_functions['auth.login'] = limiter.limit("10 per minute")(app.view_functions['auth.login'])
+app.view_functions['auth.register'] = limiter.limit("10 per minute")(app.view_functions['auth.register'])
 app.view_functions['optimize.upload_file'] = limiter.limit("10 per minute")(app.view_functions['optimize.upload_file'])
 app.view_functions['optimize.optimize'] = limiter.limit("30 per minute")(app.view_functions['optimize.optimize'])
 app.view_functions['optimize.api_optimize'] = limiter.limit("30 per minute")(app.view_functions['optimize.api_optimize'])
