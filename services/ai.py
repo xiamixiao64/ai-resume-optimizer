@@ -92,7 +92,7 @@ def parse_ai_json(result: Optional[str]) -> dict:
 
 
 def parse_pdf(file) -> str:
-    """Extract text from PDF file.
+    """Extract text from PDF file. Supports both text-based and scanned/image PDFs.
 
     Args:
         file: PDF file object.
@@ -105,10 +105,52 @@ def parse_pdf(file) -> str:
         with pdfplumber.open(file) as pdf:
             text = ""
             for page in pdf.pages:
-                text += page.extract_text() or ""
-            return text.strip()
+                extracted = page.extract_text()
+                if extracted:
+                    text += extracted
+            # If pdfplumber extracted meaningful text, return it
+            if text.strip() and len(text.strip()) > 50:
+                return text.strip()
+    except Exception as e:
+        pass
+
+    # Fallback: try OCR for scanned/image PDFs
+    try:
+        return _ocr_pdf(file)
     except Exception as e:
         return f"Error parsing PDF: {str(e)}"
+
+
+def _ocr_pdf(file) -> str:
+    """OCR fallback for scanned/image PDFs using pdf2image + pytesseract.
+
+    Args:
+        file: PDF file object.
+
+    Returns:
+        Extracted text from OCR, or error message.
+    """
+    try:
+        import io
+        from pdf2image import convert_from_bytes
+        import pytesseract
+
+        file.seek(0)
+        images = convert_from_bytes(file.read(), dpi=300)
+
+        text = ""
+        for img in images:
+            page_text = pytesseract.image_to_string(img, lang='eng')
+            if page_text.strip():
+                text += page_text + "\n"
+
+        if text.strip():
+            return text.strip()
+        return "Error: Could not extract text from scanned PDF. Please try a text-based PDF."
+    except ImportError:
+        return "Error: OCR not available. Please install pdf2image and pytesseract."
+    except Exception as e:
+        return f"Error during OCR processing: {str(e)}"
 
 
 def validate_resume_output(data: dict) -> dict:
