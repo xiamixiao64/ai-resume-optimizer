@@ -27,16 +27,16 @@ def logged_in_client(client):
     import uuid
     unique_email = f'test_{uuid.uuid4().hex[:8]}@example.com'
     
-    # Register user
+    # Register user with valid password (uppercase, lowercase, number, 8+ chars)
     resp = client.post('/register', data={
         'email': unique_email,
-        'password': 'testpass123'
+        'password': 'TestPass123'
     }, follow_redirects=False)
     
     # Login user
     resp = client.post('/login', data={
         'email': unique_email,
-        'password': 'testpass123'
+        'password': 'TestPass123'
     }, follow_redirects=False)
     
     return client
