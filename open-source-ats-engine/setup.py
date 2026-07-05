@@ -28,9 +28,7 @@ setup(
         "Topic :: Text Processing :: Linguistic",
     ],
     python_requires=">=3.7",
-    install_requires=[
-        "difflib",  # Built-in, listed for documentation
-    ],
+    install_requires=[],
     keywords="ats resume optimizer job application tracker keywords",
     project_urls={
         "Bug Reports": "https://github.com/yourusername/ats-engine/issues",

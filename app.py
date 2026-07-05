@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Logger (must be defined before first use)
+logger = logging.getLogger(__name__)
+
 # App setup
 app = Flask(__name__)
 
@@ -34,7 +37,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 
 # Extensions
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day"])
-logger = logging.getLogger(__name__)
 
 # CSRF Protection - enabled in production, can be disabled for development
 CSRF_ENABLED = os.environ.get('CSRF_ENABLED', 'true').lower() == 'true'

@@ -330,7 +330,7 @@ class ATSEngine:
         first_line = lines[0].lower() if lines else ''
         last_line = lines[-1].lower() if lines else ''
         contact_in_body = any(re.search(EMAIL_PATTERN, line) for line in lines[1:-1])
-        if contact_in_body or not first_line.startswith('[') and not last_line.startswith('['):
+        if contact_in_body or (not first_line.startswith('[') and not last_line.startswith('[')):
             checks_passed += 1
         else:
             score -= 5

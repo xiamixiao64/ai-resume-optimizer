@@ -263,7 +263,7 @@ def submit_feedback():
         import requests as http_requests
 
         resend_api_key = os.environ.get('RESEND_API_KEY', '')
-        owner_email = 'xiamixiao64@gmail.com'
+        owner_email = os.environ.get('OWNER_EMAIL', 'xiamixiao64@gmail.com')
         subject = f'ResumeForge AI Feedback - {page or "General"}'
         body = f"""Feedback from ResumeForge AI:
 
