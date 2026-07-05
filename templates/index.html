@@ -274,13 +274,17 @@
                     <div id="progressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:2px;transition:width 0.3s"></div>
                 </div>
             </div>
-            <p style="text-align:center;color:#555;font-size:0.8rem;margin-top:12px">No signup required. 3 free optimizations per device. <span style="color:#22c55e">Already used by 2,847 job seekers</span></p>
+            <p style="text-align:center;color:#555;font-size:0.8rem;margin-top:12px">Free ATS scan available without signup. Register for full AI optimization. <span style="color:#22c55e">Trusted by 2,847+ job seekers</span></p>
         </div>
             </div>
         </div>
 
         <div class="testimonials">
             <h2>What Users Say</h2>
+            <div style="text-align:center;margin-bottom:24px">
+                <span style="color:#a855f7;font-size:1.5rem;font-weight:700">2,847+</span>
+                <span style="color:#888;font-size:0.95rem"> job seekers have optimized their resumes</span>
+            </div>
             <div class="testimonial-grid">
                 <div class="testimonial">
                     <div class="quote">"Got 3 interview calls in one week after optimizing my resume. The ATS score feature showed me exactly what was wrong."</div>
@@ -346,19 +350,23 @@
             try {
                 const resp = await fetch('/api/usage');
                 if (resp.status === 401) {
-                    window.location.href = '/register';
+                    // Not logged in - don't redirect, let user use free scan
                     return null;
                 }
                 return await resp.json();
             } catch (e) {
-                window.location.href = '/register';
                 return null;
             }
         }
 
         async function checkUsageLimit() {
             const usage = await getUsage();
-            if (!usage) return false;
+            if (!usage) {
+                // Not logged in - allow free scan only
+                document.getElementById('submitBtn').style.display = 'none';
+                document.querySelector('button[onclick="freeScan()"]').style.display = 'block';
+                return false;
+            }
             if (!usage.is_pro && usage.remaining <= 0) {
                 showPaywall();
                 return false;
@@ -471,6 +479,7 @@
                 const resp = await fetch('/optimize', { method: 'POST', body: formData });
                 clearInterval(progressInterval);
                 if (resp.status === 401) {
+                    // Not logged in - redirect to register
                     window.location.href = '/register';
                     return;
                 }

@@ -109,7 +109,167 @@ class ATSEngine:
                     "突出与职位相关的成就",
                     "使用量化数据"
                 ]
-            }
+            },
+            "ultipro": {
+                "patterns": ["ultipro.com", "paycomonline", "paycom"],
+                "tips": [
+                    "UltiPro/UKG 注重数据结构化",
+                    "使用标准日期格式（MM/YYYY）",
+                    "确保联系方式在顶部"
+                ]
+            },
+            "workable": {
+                "patterns": ["workable.com", "jobs.workable"],
+                "tips": [
+                    "Workable 重视技能标签",
+                    "列出具体的技术栈",
+                    "保持简洁的段落结构"
+                ]
+            },
+            "jazzhr": {
+                "patterns": ["jazz.co", "jazzhr.com", "jobs.jazz"],
+                "tips": [
+                    "JazzHR 优先解析标题和关键词",
+                    "使用行业标准职位名称",
+                    "避免特殊字符和表格"
+                ]
+            },
+            "ashby": {
+                "patterns": ["ashbyhq.com", "jobs.ashby", "ashby"],
+                "tips": [
+                    "Ashby 使用先进 AI 解析",
+                    "保持自然的语言风格",
+                    "量化你的成就和贡献"
+                ]
+            },
+            "teamtailor": {
+                "patterns": ["teamtailor.com", "jobs.teamtailor"],
+                "tips": [
+                    "Teamtailor 重视品牌匹配",
+                    "研究公司文化并体现",
+                    "使用清晰的章节标题"
+                ]
+            },
+            "gem": {
+                "patterns": ["gem.com", "jobs.gem"],
+                "tips": [
+                    "Gem 与 ATS 深度集成",
+                    "确保技能关键词完整",
+                    "避免使用页眉页脚"
+                ]
+            },
+            "lever": {
+                "patterns": ["lever.co", "jobs.lever", "lever.co/"],
+                "tips": [
+                    "Lever 系统重视格式简洁",
+                    "避免使用表格和复杂格式",
+                    "保持简历简洁明了"
+                ]
+            },
+            "bamboohr": {
+                "patterns": ["bamboohr.com", "bamboo hr", "bamboohr"],
+                "tips": [
+                    "BambooHR 系统界面友好",
+                    "保持格式简洁清晰",
+                    "确保联系方式完整"
+                ]
+            },
+            "successfactors": {
+                "patterns": ["successfactors", "sap.com/careers", "sapsf"],
+                "tips": [
+                    "SuccessFactors 重视结构化数据",
+                    "使用标准的职位名称和技能术语",
+                    "确保日期格式一致"
+                ]
+            },
+            "jobvite": {
+                "patterns": ["jobvite.com", "jobvite"],
+                "tips": [
+                    "JobVite 重视社交招聘",
+                    "确保 LinkedIn 链接可访问",
+                    "使用行业标准关键词"
+                ]
+            },
+            "applicantstack": {
+                "patterns": ["applicantstack.com", "applicantstack"],
+                "tips": [
+                    "ApplicantStack 重视关键词匹配",
+                    "确保技能与职位要求一致",
+                    "使用标准格式"
+                ]
+            },
+            "bullhorn": {
+                "patterns": ["bullhorn.com", "bullhorn"],
+                "tips": [
+                    "Bullhorn 用于招聘机构",
+                    "确保简历格式标准化",
+                    "关键词要与职位描述匹配"
+                ]
+            },
+            "lever": {
+                "patterns": ["lever.co", "jobs.lever", "lever.co/"],
+                "tips": [
+                    "Lever 系统重视格式简洁",
+                    "避免使用表格和复杂格式",
+                    "保持简历简洁明了"
+                ]
+            },
+            "bamboohr": {
+                "patterns": ["bamboohr.com", "bamboo hr", "bamboohr"],
+                "tips": [
+                    "BambooHR 系统界面友好",
+                    "保持格式简洁清晰",
+                    "确保联系方式完整"
+                ]
+            },
+            "successfactors": {
+                "patterns": ["successfactors", "sap.com/careers", "sapsf"],
+                "tips": [
+                    "SuccessFactors 重视结构化数据",
+                    "使用标准的职位名称和技能术语",
+                    "确保日期格式一致"
+                ]
+            },
+            "jobvite": {
+                "patterns": ["jobvite.com", "jobvite"],
+                "tips": [
+                    "JobVite 重视社交招聘",
+                    "确保 LinkedIn 链接可访问",
+                    "使用行业标准关键词"
+                ]
+            },
+            "applicantstack": {
+                "patterns": ["applicantstack.com", "applicantstack"],
+                "tips": [
+                    "ApplicantStack 重视关键词匹配",
+                    "确保技能与职位要求一致",
+                    "使用标准格式"
+                ]
+            },
+            "paylocity": {
+                "patterns": ["paylocity.com", "recruiting.paylocity"],
+                "tips": [
+                    "Paylocity 重视结构化内容",
+                    "使用标准职位标题",
+                    "确保日期格式一致"
+                ]
+            },
+            "adp": {
+                "patterns": ["adp.com", "jobs.adp", "workforcnow.adp"],
+                "tips": [
+                    "ADP 系统解析能力强",
+                    "保持简洁的专业格式",
+                    "关键词自然分布"
+                ]
+            },
+            "kentik": {
+                "patterns": ["jobs.lever.co", "lever.co/apply"],
+                "tips": [
+                    "通过 Lever 提交的职位",
+                    "保持格式简洁",
+                    "使用标准章节标题"
+                ]
+            },
         }
         self.weights = {
             "formatting": 20,
