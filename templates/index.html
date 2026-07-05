@@ -433,10 +433,12 @@
                     document.getElementById('loading').style.display = 'none';
                     return;
                 }
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                    return;
+                }
                 const html = await resp.text();
-                document.open();
-                document.write(html);
-                document.close();
+                document.body.innerHTML = html;
             } catch (err) {
                 document.getElementById('submitBtn').style.display = 'block';
                 document.getElementById('loading').style.display = 'none';

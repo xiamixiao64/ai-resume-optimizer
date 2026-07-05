@@ -582,7 +582,7 @@ TARGET JOB:
     })
     save_history({
         'id': proof_id, 'user_id': user_id,
-        'resume_text': resume_text[:2000], 'job_description': jd[:1000],
+        'resume_text': resume_text, 'job_description': jd,
         'mode': mode, 'result': {'ats_score': data.get("ats_score", 0), 'improvements': data.get("improvements", [])},
         'created_at': datetime.datetime.now().isoformat()
     })

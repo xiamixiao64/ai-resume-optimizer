@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
 
 
 def call_ai(prompt: str, system_msg: str = "You are an expert resume optimizer and career coach.") -> Optional[str]:
